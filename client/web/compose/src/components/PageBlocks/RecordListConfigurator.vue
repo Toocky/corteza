@@ -84,10 +84,44 @@
             >
               <field-picker
                 :module="recordListModule"
+                :extra-module="parentModuleConfig.extraModule"
+                :extra-module-fields="parentModuleConfig.extraModuleFields"
                 :fields.sync="options.fields"
                 class="mb-3"
                 style="height: 50vh;"
               />
+            </b-col>
+
+            <b-col
+              v-if="onRecordPage"
+              cols="12"
+            >
+              <b-form-group>
+                <c-input-checkbox
+                  v-model="options.includeParentFields"
+                  :label="$t('recordList.parentFields.enable')"
+                  switch
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
+
+              <b-form-group
+                v-if="options.includeParentFields"
+                :label="$t('recordList.parentFields.field')"
+                label-class="text-primary"
+              >
+                <c-input-select
+                  v-model="options.parentField"
+                  :options="availableParentFields"
+                  label="label"
+                  :reduce="f => f.name"
+                  :placeholder="$t('general.label.none')"
+                />
+
+                <b-form-text class="text-secondary small">
+                  {{ $t('recordList.parentFields.footnote') }}
+                </b-form-text>
+              </b-form-group>
             </b-col>
 
             <b-col
@@ -102,6 +136,7 @@
                 <c-input-select
                   v-model="options.refField"
                   :options="parentFields"
+                  label="label"
                   :placeholder="$t('general.label.none')"
                   :reduce="f => f.name"
                 />
@@ -171,7 +206,8 @@
             <field-picker
               :module="recordListModule"
               :fields.sync="options.editFields"
-              :field-subset="editableFieldSubset"
+              :field-subset="options.fields"
+              disable-system-fields
               style="height: 50vh;"
             />
           </b-form-group>
@@ -235,23 +271,6 @@
               lg="6"
             >
               <b-form-group
-                :label="$t('recordList.record.prefilterHideSearch')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  v-model="options.hideSearch"
-                  switch
-                  invert
-                  :labels="checkboxLabel"
-                />
-              </b-form-group>
-            </b-col>
-
-            <b-col
-              cols="12"
-              lg="6"
-            >
-              <b-form-group
                 :label="$t('recordList.record.filterHide')"
                 label-class="text-primary"
               >
@@ -265,28 +284,19 @@
             </b-col>
 
             <b-col
-              v-if="!options.hideSearch"
-              lg="6"
               cols="12"
+              lg="6"
             >
               <b-form-group
-                :label="$t('recordList.record.searchableFields')"
+                :label="$t('recordList.record.prefilterHideSearch')"
                 label-class="text-primary"
               >
-                <column-picker
-                  size="sm"
-                  variant="light"
-                  :module="recordListModule"
-                  :fields="options.searchableFields"
-                  :field-subset="queryableFields"
-                  @updateFields="onUpdateSearchableFields"
-                >
-                  {{ $t('recordList.record.configureSearchableFields') }}
-                </column-picker>
-
-                <b-form-text class="text-secondary small">
-                  {{ $t('recordList.record.searchableFieldsFootnote') }}
-                </b-form-text>
+                <c-input-checkbox
+                  v-model="options.hideSearch"
+                  switch
+                  invert
+                  :labels="checkboxLabel"
+                />
               </b-form-group>
             </b-col>
           </b-row>
@@ -852,6 +862,26 @@
               lg="6"
             >
               <b-form-group
+                :label="$t('recordList.inlineEdit.fullInline')"
+                label-class="text-primary"
+                :disabled="!options.inlineRecordEditEnabled"
+              >
+                <c-input-checkbox
+                  v-model="options.inlineRecordEditFullInline"
+                  switch
+                  :labels="checkboxLabel"
+                />
+                <b-form-text class="text-secondary small">
+                  {{ $t('recordList.inlineEdit.fullInlineDescription') }}
+                </b-form-text>
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
                 :label="$t('recordList.inlineEdit.allowAddField')"
                 label-class="text-primary"
               >
@@ -957,18 +987,14 @@
                   {{ $t('recordList.hideRecordCloneButton') }}
                 </b-form-checkbox>
 
-                <b-form-checkbox v-model="options.hideRecordReminderButton">
-                  {{ $t('recordList.hideRecordReminderButton') }}
-                </b-form-checkbox>
-
                 <b-form-checkbox
                   v-model="options.hideRecordPermissionsButton"
                 >
                   {{ $t('recordList.hideRecordPermissionsButton') }}
                 </b-form-checkbox>
 
-                <b-form-checkbox v-model="options.hideRecordDeleteButton">
-                  {{ $t('recordList.hideRecordDeleteButton') }}
+                <b-form-checkbox v-model="options.hideRecordReminderButton">
+                  {{ $t('recordList.hideRecordReminderButton') }}
                 </b-form-checkbox>
               </b-form-group>
             </b-col>
@@ -1042,7 +1068,6 @@ export default {
         { value: 'sameTab', text: this.$t('recordList.record.openInSameTab') },
         { value: 'newTab', text: this.$t('recordList.record.openInNewTab') },
         { value: 'modal', text: this.$t('recordList.record.openInModal') },
-        { value: 'doNothing', text: this.$t('recordList.record.doNothing') },
       ]
     },
 
@@ -1092,16 +1117,257 @@ export default {
     },
 
     parentFields () {
-      if (this.recordListModule) {
-        return this.recordListModule.fields.filter(({ kind, options }) => {
-          if (kind === 'Record' && this.record) {
-            return options.moduleID === this.record.moduleID
-          }
+      if (!this.recordListModule) {
+        console.log('[DEBUG parentFields] No recordListModule, returning []')
+        return []
+      }
 
-          return false
+      // Use the page's module ID to determine the "parent" module
+      // In the configurator, this.record is not available, so we use this.page.moduleID
+      // which is the module of the page this record list block is on
+      const targetModuleID = (this.record && this.record.moduleID) || (this.page && this.page.moduleID)
+
+      console.log('[DEBUG parentFields] recordListModule:', this.recordListModule.name, 'targetModuleID:', targetModuleID)
+
+      if (!targetModuleID) {
+        console.log('[DEBUG parentFields] No targetModuleID, returning []')
+        return []
+      }
+
+      const resultFields = []
+
+      // ==============================================================
+      // PART 1: Hierarchical paths (existing logic)
+      // Parent -> Grandparent -> Great-grandparent (multi-hop)
+      // ==============================================================
+      console.log('[DEBUG parentFields] PART 1: Starting BFS from recordListModule:', this.recordListModule.moduleID)
+      
+      const visitedModules = new Set()
+
+      // Helper function to recursively find paths to target module
+      const findPathsToTarget = (currentModuleID, currentPath = []) => {
+        // Avoid infinite loops
+        if (visitedModules.has(currentModuleID)) {
+          console.log('[DEBUG BFS] Skipping already visited module:', currentModuleID)
+          return
+        }
+        visitedModules.add(currentModuleID)
+
+        const module = this.getModuleByID(currentModuleID)
+        if (!module) {
+          console.log('[DEBUG BFS] Module not found:', currentModuleID)
+          return
+        }
+
+        console.log('[DEBUG BFS] Visiting module:', module.name, '(ID:', currentModuleID, ')', 'currentPath:', currentPath.map(f => f.name))
+
+        // Check all record fields in this module
+        module.fields.forEach(field => {
+          if (field.kind === 'Record' && !field.isMulti && field.options && field.options.moduleID) {
+            const nextModuleID = field.options.moduleID
+            console.log('[DEBUG BFS]   Field:', field.name, '-> moduleID:', nextModuleID, 'targetModuleID:', targetModuleID, 'MATCH:', nextModuleID === targetModuleID)
+
+            // If this field points directly to our target, add the path
+            if (nextModuleID === targetModuleID) {
+              console.log('[DEBUG BFS]   >>> FOUND DIRECT PATH! Field:', field.name)
+              // Add all fields in the path plus this field
+              resultFields.push(...currentPath.map(f => ({ ...f, isCommonField: false })), {
+                ...field,
+                isCommonField: false,
+                label: field.name,
+              })
+              return
+            }
+
+            // Otherwise, continue searching from this field's module
+            console.log('[DEBUG BFS]   >>> Continuing search from:', field.name, '->', nextModuleID)
+            findPathsToTarget(nextModuleID, [...currentPath, field])
+          } else if (field.kind === 'Record') {
+             console.log('[DEBUG BFS]   Field:', field.name, 'is Record but no moduleID or isMulti')
+          }
         })
       }
-      return []
+
+      // Start searching from the record list's module
+      findPathsToTarget(this.recordListModule.moduleID)
+      console.log('[DEBUG parentFields] PART 1 resultFields:', resultFields.map(f => ({name: f.name, label: f.label})))
+
+      // ==============================================================
+      // PART 1.5: Grandparent relationships (reverse traversal)
+      // Instead of asking "what does target point to?", we ask "what points to target?"
+      // 
+      // Relationship: grandparent <- parent <- child <- recordListModule
+      // The recordListModule field points to child, child points to parent, parent points to grandparent
+      // But we traverse from recordListModule outward to find the chain to target
+      // ==============================================================
+      console.log('[DEBUG parentFields] PART 1.5: Checking grandparent relationships (reverse traversal)')
+
+      const grandparentFields = []
+
+      // Strategy: For each Record field in the record list module, traverse outward
+      // and check if we can reach the target module through any chain
+      // We need to find chains where: recordListModule.field -> ... -> targetModule
+      // And if the chain length > 1, it's a grandparent relationship
+
+      const findAllPathsToTarget = (startModuleID, path = []) => {
+        const visited = new Set()
+        const results = []
+
+        const traverse = (currentModuleID, currentPath) => {
+          if (visited.has(currentModuleID)) return
+          visited.add(currentModuleID)
+
+          const currentModule = this.getModuleByID(currentModuleID)
+          if (!currentModule) return
+
+          // Check all Record fields in this module
+          currentModule.fields.forEach(field => {
+            if (field.kind !== 'Record' || field.isMulti || !field.options || !field.options.moduleID) {
+              return
+            }
+
+            const nextModuleID = field.options.moduleID
+            const newPath = [...currentPath, { field: field.name, moduleID: nextModuleID }]
+
+            // If we reached the target
+            if (nextModuleID === targetModuleID) {
+              console.log('[DEBUG grandparent] FOUND PATH to target! Path:', newPath)
+              results.push({
+                fieldName: path[0]?.field || field.name, // The first field in the chain (from record list module)
+                fullPath: newPath,
+                isGrandparent: newPath.length > 1, // More than 1 hop = grandparent
+              })
+              return
+            }
+
+            // Continue traversing
+            traverse(nextModuleID, newPath)
+          })
+        }
+
+        traverse(startModuleID, path)
+        return results
+      }
+
+      // Check each Record field in the record list module
+      this.recordListModule.fields.forEach(field => {
+        if (field.kind !== 'Record' || field.isMulti || !field.options || !field.options.moduleID) {
+          return
+        }
+
+        console.log('[DEBUG grandparent] Checking recordListModule field:', field.name, '->', field.options.moduleID)
+
+        const paths = findAllPathsToTarget(field.options.moduleID, [{ field: field.name, moduleID: field.options.moduleID }])
+
+        paths.forEach(pathResult => {
+          console.log('[DEBUG grandparent] Path result:', pathResult)
+
+          if (pathResult.isGrandparent) {
+            // This is a grandparent relationship
+            const multiHopPath = pathResult.fullPath.map(p => p.field)
+            console.log('[DEBUG grandparent] FOUND GRANDPARENT! field:', pathResult.fieldName, 'multiHopPath:', multiHopPath)
+
+            grandparentFields.push({
+              ...field,
+              isCommonField: false,
+              isGrandparent: true,
+              label: `${field.name} (${this.$t('recordList.refField.grandparent')})`,
+              multiHopPath: multiHopPath,
+            })
+          }
+        })
+      })
+
+      console.log('[DEBUG parentFields] grandparentFields found:', grandparentFields.map(f => ({ name: f.name, isGrandparent: f.isGrandparent, multiHopPath: f.multiHopPath })))
+
+      // Add grandparent fields to result
+      resultFields.push(...grandparentFields)
+
+      // ==============================================================
+      // PART 2: Common Fields (sibling relationship)
+      // Find fields in the record list module that point to the same module
+      // as the current page's module (the "parent" module).
+      //
+      // Logic:
+      // - Get all Record-kind fields from the current page's module (parent)
+      // - Get all Record-kind fields from the record list module (child)
+      // - Find fields in the child module that point to the SAME module
+      //   as any field in the parent module
+      // This identifies "sibling" records that share the same parent reference
+      // ==============================================================
+
+      // Get all modules that the parent module links to
+      const parentModule = this.getModuleByID(targetModuleID)
+      const parentLinkedModuleIDs = new Set()
+
+      if (parentModule) {
+        parentModule.fields.forEach(field => {
+          if (field.kind === 'Record' && field.options && field.options.moduleID) {
+            parentLinkedModuleIDs.add(field.options.moduleID)
+          }
+        })
+      }
+
+      // Also include the parent module itself (for direct parent-child relationships)
+      parentLinkedModuleIDs.add(targetModuleID)
+
+      // Find fields in the record list module that point to any of those modules
+      const commonFields = this.recordListModule.fields
+        .filter(field => {
+          // Must be a Record field
+          if (field.kind !== 'Record') return false
+
+          // Must have options and moduleID
+          if (!field.options || !field.options.moduleID) return false
+
+          // Include fields that point to the parent module directly
+          // OR to a module that the parent module also links to (sibling relationship)
+          return parentLinkedModuleIDs.has(field.options.moduleID)
+        })
+        .map(field => ({
+          ...field,
+          isCommonField: true,
+          // Add indicator in label to distinguish from hierarchical fields
+          label: `${field.name} (${this.$t('recordList.refField.commonField')})`,
+        }))
+
+      // Combine both results
+      // Remove duplicates from hierarchical results while preserving order
+      // IMPORTANT: Prioritize grandparent fields over non-grandparent fields
+      const uniqueFields = []
+      const fieldIds = new Set()
+      
+      // First pass: add all grandparent fields (they take priority)
+      const allFields = [...grandparentFields, ...resultFields]
+      
+      allFields.forEach(field => {
+        const fieldId = `${field.name}-${field.options?.moduleID}`
+        if (!fieldIds.has(fieldId)) {
+          fieldIds.add(fieldId)
+          uniqueFields.push(field)
+          console.log('[DEBUG dedup] Adding field:', field.name, 'isGrandparent:', field.isGrandparent)
+        } else {
+          console.log('[DEBUG dedup] Skipping duplicate:', field.name, '(first occurrence kept)')
+        }
+      })
+
+      // Remove common fields that are already in hierarchical results
+      const filteredCommonFields = commonFields.filter(field => {
+        const fieldId = `${field.name}-${field.options?.moduleID}`
+        return !fieldIds.has(fieldId)
+      })
+
+      const finalResult = [...uniqueFields, ...filteredCommonFields]
+      
+      console.log('[DEBUG parentFields] Final result:', finalResult.map(f => ({
+        name: f.name,
+        isGrandparent: f.isGrandparent,
+        isCommonField: f.isCommonField,
+        multiHopPath: f.multiHopPath,
+        label: f.label
+      })))
+
+      return finalResult
     },
 
     positionFields () {
@@ -1111,8 +1377,77 @@ export default {
       return []
     },
 
+    /**
+     * Available parent fields for the dropdown
+     * These are fields in the PARENT module (this.module) that link to the RECORD LIST module
+     * This is the reverse of parentFields - we look for fields pointing TO the record list module
+     */
+    availableParentFields () {
+      if (!this.module || !this.recordListModule) {
+        return []
+      }
+
+      const targetModuleID = this.recordListModule.moduleID
+
+      // Find Record-kind fields in parent module that point to record list module
+      return this.module.fields
+        .filter(field => {
+          if (field.kind !== 'Record') return false
+          if (!field.options || !field.options.moduleID) return false
+          return field.options.moduleID === targetModuleID
+        })
+        .map(field => ({
+          ...field,
+          label: `${field.name} (${this.$t('recordList.parentFields.parentIndicator')})`,
+        }))
+    },
+
+    /**
+     * Configuration for passing parent module fields to the field picker
+     * Returns the parent module and its fields when the feature is enabled
+     */
+    parentModuleConfig () {
+      // Only return data if feature is enabled and a parent field is selected
+      if (!this.options.includeParentFields || !this.options.parentField) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      // Find the selected parent field
+      const parentField = this.module.fields.find(f => f.name === this.options.parentField)
+      if (!parentField || parentField.kind !== 'Record' || !parentField.options || !parentField.options.moduleID) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      // Get the parent module
+      const parentModule = this.getModuleByID(parentField.options.moduleID)
+      if (!parentModule) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      return {
+        extraModule: {
+          moduleID: parentModule.moduleID,
+          name: parentModule.name,
+        },
+        extraModuleFields: parentModule.fields.map(f => ({
+          ...f,
+          // Store original name for reference
+          originalName: f.name,
+        })),
+      }
+    },
+
     isInlineEditorAllowed () {
-      return !!this.recordListModule
+      return this.recordListModule && (this.onRecordPage || this.options.editable)
     },
 
     summaryMetrics () {
@@ -1125,30 +1460,6 @@ export default {
         { value: 'notEmptyCount', label: this.$t('recordList.summaries.metrics.notEmptyCount.label') },
         { value: 'uniqueCount', label: this.$t('recordList.summaries.metrics.uniqueCount.label') },
       ]
-    },
-
-    queryableFields () {
-      if (!this.recordListModule) {
-        return []
-      }
-
-      return [
-        ...this.recordListModule.fields,
-        ...this.recordListModule.systemFields(),
-      ].filter(f => f.isQueryable)
-    },
-
-    editableFieldSubset () {
-      if (!this.recordListModule) {
-        return []
-      }
-
-      return this.options.fields.length
-        ? this.options.fields
-        : [
-            ...this.recordListModule.fields,
-            this.recordListModule.systemFields().find(f => f.name === 'ownedBy'),
-          ]
     },
   },
 
@@ -1167,14 +1478,14 @@ export default {
     },
 
     'options.editable' (value) {
-      this.options.editFields = value ? [...this.editableFieldSubset] : []
+      this.options.editFields = []
       this.options.positionField = undefined
 
       if (value) {
+        this.options.hideRecordEditButton = true
+        this.options.hideRecordViewButton = true
         let f = null
-        if (this.module && this.module.moduleID) {
-          f = this.recordListModule.fields.find(({ options: { moduleID } }) => moduleID === this.module.moduleID)
-        }
+        if (this.module && this.module.moduleID) f = this.recordListModule.fields.find(({ options: { moduleID } }) => moduleID === this.module.moduleID)
         this.options.refField = f ? f.name : undefined
       } else {
         this.options.refField = undefined
@@ -1192,6 +1503,40 @@ export default {
 
     'options.fields' (fields) {
       this.options.editFields = this.options.editFields.filter(a => fields.some(b => a.name === b.name))
+    },
+
+    'options.refField' (newRefField, oldRefField) {
+      if (!newRefField) {
+        // Clear the stored properties when field is deselected
+        this.options.isGrandparent = undefined
+        this.options.isCommonField = undefined
+        this.options.multiHopPath = undefined
+        return
+      }
+
+      if (newRefField === oldRefField) {
+        return
+      }
+
+      // Find the selected field in parentFields to get isGrandparent, isCommonField, multiHopPath
+      const selectedField = this.parentFields.find(f => f.name === newRefField)
+      if (selectedField) {
+        this.options.isGrandparent = selectedField.isGrandparent
+        this.options.isCommonField = selectedField.isCommonField
+        this.options.multiHopPath = selectedField.multiHopPath
+
+        console.log('[DEBUG Configurator] Stored refField properties:', {
+          refField: newRefField,
+          isGrandparent: this.options.isGrandparent,
+          isCommonField: this.options.isCommonField,
+          multiHopPath: this.options.multiHopPath,
+        })
+      } else {
+        // Clear if not found in parentFields (e.g., regular field)
+        this.options.isGrandparent = undefined
+        this.options.isCommonField = undefined
+        this.options.multiHopPath = undefined
+      }
     },
   },
 
@@ -1283,10 +1628,6 @@ export default {
 
     onUpdateInlineEditableFields (fields = []) {
       this.options.inlineEditFields = fields.map(f => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
-    },
-
-    onUpdateSearchableFields (fields = []) {
-      this.options.searchableFields = fields.map(f => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
     },
 
     onUpdateTextWrapOption (fields = []) {
