@@ -122,6 +122,18 @@
                   {{ $t('recordList.parentFields.footnote') }}
                 </b-form-text>
               </b-form-group>
+
+              <b-form-group
+                v-if="options.includeParentFields"
+                :label="$t('recordList.parentFields.hideModuleLabel')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.hideParentModuleLabel"
+                  switch
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
             </b-col>
 
             <b-col
@@ -1118,58 +1130,35 @@ export default {
 
     parentFields () {
       if (!this.recordListModule) {
-        console.log('[DEBUG parentFields] No recordListModule, returning []')
         return []
       }
 
-      // Use the page's module ID to determine the "parent" module
-      // In the configurator, this.record is not available, so we use this.page.moduleID
-      // which is the module of the page this record list block is on
       const targetModuleID = (this.record && this.record.moduleID) || (this.page && this.page.moduleID)
 
-      console.log('[DEBUG parentFields] recordListModule:', this.recordListModule.name, 'targetModuleID:', targetModuleID)
-
       if (!targetModuleID) {
-        console.log('[DEBUG parentFields] No targetModuleID, returning []')
         return []
       }
 
       const resultFields = []
 
-      // ==============================================================
-      // PART 1: Hierarchical paths (existing logic)
-      // Parent -> Grandparent -> Great-grandparent (multi-hop)
-      // ==============================================================
-      console.log('[DEBUG parentFields] PART 1: Starting BFS from recordListModule:', this.recordListModule.moduleID)
-      
       const visitedModules = new Set()
 
-      // Helper function to recursively find paths to target module
       const findPathsToTarget = (currentModuleID, currentPath = []) => {
-        // Avoid infinite loops
         if (visitedModules.has(currentModuleID)) {
-          console.log('[DEBUG BFS] Skipping already visited module:', currentModuleID)
           return
         }
         visitedModules.add(currentModuleID)
 
         const module = this.getModuleByID(currentModuleID)
         if (!module) {
-          console.log('[DEBUG BFS] Module not found:', currentModuleID)
           return
         }
 
-        console.log('[DEBUG BFS] Visiting module:', module.name, '(ID:', currentModuleID, ')', 'currentPath:', currentPath.map(f => f.name))
-
-        // Check all record fields in this module
         module.fields.forEach(field => {
           if (field.kind === 'Record' && !field.isMulti && field.options && field.options.moduleID) {
             const nextModuleID = field.options.moduleID
-            console.log('[DEBUG BFS]   Field:', field.name, '-> moduleID:', nextModuleID, 'targetModuleID:', targetModuleID, 'MATCH:', nextModuleID === targetModuleID)
 
-            // If this field points directly to our target, add the path
             if (nextModuleID === targetModuleID) {
-              console.log('[DEBUG BFS]   >>> FOUND DIRECT PATH! Field:', field.name)
               // Add all fields in the path plus this field
               resultFields.push(...currentPath.map(f => ({ ...f, isCommonField: false })), {
                 ...field,
@@ -1179,28 +1168,22 @@ export default {
               return
             }
 
-            // Otherwise, continue searching from this field's module
-            console.log('[DEBUG BFS]   >>> Continuing search from:', field.name, '->', nextModuleID)
             findPathsToTarget(nextModuleID, [...currentPath, field])
-          } else if (field.kind === 'Record') {
-             console.log('[DEBUG BFS]   Field:', field.name, 'is Record but no moduleID or isMulti')
           }
         })
       }
 
       // Start searching from the record list's module
       findPathsToTarget(this.recordListModule.moduleID)
-      console.log('[DEBUG parentFields] PART 1 resultFields:', resultFields.map(f => ({name: f.name, label: f.label})))
 
       // ==============================================================
       // PART 1.5: Grandparent relationships (reverse traversal)
       // Instead of asking "what does target point to?", we ask "what points to target?"
-      // 
+      //
       // Relationship: grandparent <- parent <- child <- recordListModule
       // The recordListModule field points to child, child points to parent, parent points to grandparent
       // But we traverse from recordListModule outward to find the chain to target
       // ==============================================================
-      console.log('[DEBUG parentFields] PART 1.5: Checking grandparent relationships (reverse traversal)')
 
       const grandparentFields = []
 
@@ -1231,7 +1214,6 @@ export default {
 
             // If we reached the target
             if (nextModuleID === targetModuleID) {
-              console.log('[DEBUG grandparent] FOUND PATH to target! Path:', newPath)
               results.push({
                 fieldName: path[0]?.field || field.name, // The first field in the chain (from record list module)
                 fullPath: newPath,
@@ -1255,17 +1237,11 @@ export default {
           return
         }
 
-        console.log('[DEBUG grandparent] Checking recordListModule field:', field.name, '->', field.options.moduleID)
-
         const paths = findAllPathsToTarget(field.options.moduleID, [{ field: field.name, moduleID: field.options.moduleID }])
 
         paths.forEach(pathResult => {
-          console.log('[DEBUG grandparent] Path result:', pathResult)
-
           if (pathResult.isGrandparent) {
-            // This is a grandparent relationship
             const multiHopPath = pathResult.fullPath.map(p => p.field)
-            console.log('[DEBUG grandparent] FOUND GRANDPARENT! field:', pathResult.fieldName, 'multiHopPath:', multiHopPath)
 
             grandparentFields.push({
               ...field,
@@ -1277,8 +1253,6 @@ export default {
           }
         })
       })
-
-      console.log('[DEBUG parentFields] grandparentFields found:', grandparentFields.map(f => ({ name: f.name, isGrandparent: f.isGrandparent, multiHopPath: f.multiHopPath })))
 
       // Add grandparent fields to result
       resultFields.push(...grandparentFields)
@@ -1345,9 +1319,6 @@ export default {
         if (!fieldIds.has(fieldId)) {
           fieldIds.add(fieldId)
           uniqueFields.push(field)
-          console.log('[DEBUG dedup] Adding field:', field.name, 'isGrandparent:', field.isGrandparent)
-        } else {
-          console.log('[DEBUG dedup] Skipping duplicate:', field.name, '(first occurrence kept)')
         }
       })
 
@@ -1358,14 +1329,6 @@ export default {
       })
 
       const finalResult = [...uniqueFields, ...filteredCommonFields]
-      
-      console.log('[DEBUG parentFields] Final result:', finalResult.map(f => ({
-        name: f.name,
-        isGrandparent: f.isGrandparent,
-        isCommonField: f.isCommonField,
-        multiHopPath: f.multiHopPath,
-        label: f.label
-      })))
 
       return finalResult
     },
@@ -1379,27 +1342,31 @@ export default {
 
     /**
      * Available parent fields for the dropdown
-     * These are fields in the PARENT module (this.module) that link to the RECORD LIST module
-     * This is the reverse of parentFields - we look for fields pointing TO the record list module
+     * These are Record-kind fields in the RECORD LIST MODULE that point to some parent module
+     * The user picks which link field to use for joining parent records
      */
     availableParentFields () {
-      if (!this.module || !this.recordListModule) {
+      if (!this.recordListModule) {
         return []
       }
 
-      const targetModuleID = this.recordListModule.moduleID
-
-      // Find Record-kind fields in parent module that point to record list module
-      return this.module.fields
+      // Find all Record-kind fields in the record list module that point to any other module
+      // These are candidates for the "parent link field" — the field that joins child to parent
+      return this.recordListModule.fields
         .filter(field => {
           if (field.kind !== 'Record') return false
           if (!field.options || !field.options.moduleID) return false
-          return field.options.moduleID === targetModuleID
+          return true
         })
-        .map(field => ({
-          ...field,
-          label: `${field.name} (${this.$t('recordList.parentFields.parentIndicator')})`,
-        }))
+        .map(field => {
+          const linkedModule = this.getModuleByID(field.options.moduleID)
+          return {
+            ...field,
+            label: linkedModule
+              ? `${field.label || field.name} → ${linkedModule.name}`
+              : field.label || field.name,
+          }
+        })
     },
 
     /**
@@ -1415,9 +1382,17 @@ export default {
         }
       }
 
-      // Find the selected parent field
-      const parentField = this.module.fields.find(f => f.name === this.options.parentField)
-      if (!parentField || parentField.kind !== 'Record' || !parentField.options || !parentField.options.moduleID) {
+      // Find the selected parent field in the RECORD LIST MODULE (not the page module)
+      // options.parentField is the name of a field IN THE CHILD/record list module that points UP to a parent
+      if (!this.recordListModule) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      const linkField = this.recordListModule.fields.find(f => f.name === this.options.parentField)
+      if (!linkField || linkField.kind !== 'Record' || !linkField.options || !linkField.options.moduleID) {
         return {
           extraModule: null,
           extraModuleFields: [],
@@ -1425,7 +1400,7 @@ export default {
       }
 
       // Get the parent module
-      const parentModule = this.getModuleByID(parentField.options.moduleID)
+      const parentModule = this.getModuleByID(linkField.options.moduleID)
       if (!parentModule) {
         return {
           extraModule: null,
@@ -1505,6 +1480,25 @@ export default {
       this.options.editFields = this.options.editFields.filter(a => fields.some(b => a.name === b.name))
     },
 
+    'options.parentField' (newVal, oldVal) {
+      if (newVal !== oldVal) {
+        if (this.options.fields && this.options.fields.length > 0) {
+          this.options.fields = this.options.fields.filter(f => !f.isParentField)
+        }
+      }
+    },
+
+    'options.includeParentFields' (newVal) {
+      if (!newVal) {
+        // Remove any parent fields from the configured fields list
+        if (this.options.fields && this.options.fields.length) {
+          this.options.fields = this.options.fields.filter(f => !f.isParentField)
+        }
+        // Clear the parent field selection
+        this.options.parentField = null
+      }
+    },
+
     'options.refField' (newRefField, oldRefField) {
       if (!newRefField) {
         // Clear the stored properties when field is deselected
@@ -1524,19 +1518,28 @@ export default {
         this.options.isGrandparent = selectedField.isGrandparent
         this.options.isCommonField = selectedField.isCommonField
         this.options.multiHopPath = selectedField.multiHopPath
-
-        console.log('[DEBUG Configurator] Stored refField properties:', {
-          refField: newRefField,
-          isGrandparent: this.options.isGrandparent,
-          isCommonField: this.options.isCommonField,
-          multiHopPath: this.options.multiHopPath,
-        })
       } else {
-        // Clear if not found in parentFields (e.g., regular field)
         this.options.isGrandparent = undefined
         this.options.isCommonField = undefined
         this.options.multiHopPath = undefined
       }
+    },
+
+    parentFields: {
+      handler (fields) {
+        if (!this.options.parentField) return
+        const isValid = fields.some(f => f.name === this.options.parentField)
+        if (!isValid) {
+          this.options.parentField = null
+          this.options.isGrandparent = undefined
+          this.options.isCommonField = undefined
+          this.options.multiHopPath = undefined
+          if (this.options.fields && this.options.fields.length) {
+            this.options.fields = this.options.fields.filter(f => !f.isParentField)
+          }
+        }
+      },
+      deep: true,
     },
   },
 
