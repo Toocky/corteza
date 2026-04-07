@@ -466,149 +466,53 @@
                 v-for="field in fields"
                 :key="field.key"
               >
-                <!-- Inline editor for supported field types -->
-                <div
-                  v-if="inlineEditing && field.canEdit && showInlineEdit(field) && isInlineEditableFieldType(field.moduleField) && options.inlineRecordEditFullInline"
-                  class="d-flex flex-column align-items-start gap-1"
-                >
-                  <!-- Field value display -->
-                  <div
-                    v-if="!isFieldChanged(item.id, field.key)"
-                    class="d-flex w-100"
-                  >
-                    <!-- Render appropriate input based on field type -->
-                    <div v-if="field.moduleField && field.moduleField && field.moduleField.kind === 'Select'">
-                      <c-input-select
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :options="field.moduleField.options"
-                        :reduce="o => o.value"
-                        :get-option-label="getOptionLabel"
-                        :get-option-key="getOptionKey"
-                        :placeholder="$t('kind.select.placeholder')"
-                        :selectable="isSelectable(field.moduleField)"
-                        :loading="false"
-                        class="w-100"
-                        @input="onInlineFieldInput(item.r, field.moduleField, $event)"
-                      />
-                    </div>
-                    <div v-else-if="field.moduleField && field.moduleField.kind === 'Checkbox'">
-                      <b-form-checkbox
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :switch="field.moduleField.options.switch"
-                        :labels="field.moduleField.options.switch ? checkboxLabel(field.moduleField) : {}"
-                        @change="onInlineFieldInput(item.r, field.moduleField, $event)"
-                      >
-                        {{ field.moduleField.options.label || '' }}
-                      </b-form-checkbox>
-                    </div>
-                    <div v-else-if="field.moduleField && field.moduleField.kind === 'Record'">
-                      <c-input-select
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :options="field.moduleField.options"
-                        :reduce="o => o.value"
-                        :get-option-label="getOptionLabel"
-                        :get-option-key="getOptionKey"
-                        :placeholder="$t('kind.record.suggestionPlaceholder')"
-                        :selectable="isSelectable(field.moduleField)"
-                        :loading="false"
-                        :clearable="false"
-                        :filterable="false"
-                        :searchable="true"
-                        class="w-100"
-                        @input="onInlineFieldInput(item.r, field.moduleField, $event)"
-                        @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
-                      >
-                        <template #option="option">
-                          <field-viewer
-                            v-if="field.moduleField.options.labelField && option.values[field.moduleField.options.labelField.name]"
-                            :field="field.moduleField.options.labelField"
-                            :record="option"
-                            :namespace="namespace"
-                            disable-click
-                            value-only
-                          />
-                          <template v-else>
-                            {{ option.recordID }}
-                          </template>
-                        </template>
-                        <template #selected-option="option">
-                          <field-viewer
-                            v-if="field.moduleField.options.labelField && getRecordByID(option.label).values[field.moduleField.options.labelField.name]"
-                            :field="field.moduleField.options.labelField"
-                            :record="getRecordByID(option.label)"
-                            :namespace="namespace"
-                            disable-click
-                            value-only
-                          />
-                          <template v-else>
-                            {{ option.label }}
-                          </template>
-                        </template>
-                      </c-input-select>
-                    </div>
-                    <div v-else-if="field.moduleField && field.moduleField.kind === 'User'">
-                      <c-input-select
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :options="field.moduleField.options"
-                        :reduce="o => o.value"
-                        :get-option-label="getOptionLabel"
-                        :get-option-key="getOptionKey"
-                        :placeholder="$t('kind.user.suggestionPlaceholder')"
-                        :selectable="isSelectable(field.moduleField)"
-                        :loading="false"
-                        :clearable="field.moduleField.name !== 'ownedBy'"
-                        :filterable="false"
-                        :searchable="true"
-                        class="w-100"
-                        @input="onInlineFieldInput(item.r, field.moduleField, $event)"
-                        @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
-                      >
-                        <template #option="option">
-                          <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
-                          <span v-else>No user</span>
-                        </template>
-                        <template #selected-option="option">
-                          <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
-                          <span v-else>No user</span>
-                        </template>
-                      </c-input-select>
-                    </div>
-                    <div v-else>
-                      <!-- Fallback to regular viewer -->
-                      <field-viewer
-                        :field="field.moduleField"
-                        value-only
-                        :record="item.r"
-                        :module="module"
-                        :namespace="namespace"
-                        :extra-options="options"
-                        include-styles
-                      />
-                    </div>
-                  </div>
+                <!-- Parent field: look up value from resolved parent records -->
+                <div v-if="field.isParentField">
+                  <template v-if="getParentRecordID(item.r) && resolvedParentRecords[getParentRecordID(item.r)]">
+                    <field-viewer
+                      :field="field.moduleField"
+                      value-only
+                      :record="resolvedParentRecords[getParentRecordID(item.r)]"
+                      :module="getModuleByID(field.parentModuleID)"
+                      :namespace="namespace"
+                      :extra-options="options"
+                      include-styles
+                    />
+                  </template>
+                  <template v-else>
+                    <!-- Parent record not loaded yet or link field is empty -->
+                    <span class="text-muted">—</span>
+                  </template>
+                </div>
 
-                  <!-- Show save button when field has changes -->
+                <!-- Regular child field: existing rendering logic unchanged -->
+                <div v-else>
+                  <!-- Inline editor for supported field types -->
                   <div
-                    v-else
-                    class="d-flex align-items-start gap-1"
+                    v-if="inlineEditing && field.canEdit && showInlineEdit(field) && isInlineEditableFieldType(field.moduleField) && options.inlineRecordEditFullInline"
+                    class="d-flex flex-column align-items-start gap-1"
                   >
-                    <!-- Same input as above but with save button -->
-                    <div v-if="field.moduleField && field.moduleField && field.moduleField.kind === 'Select'">
-                      <c-input-select
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :options="field.moduleField.options"
-                        :reduce="o => o.value"
-                        :get-option-label="getOptionLabel"
-                        :get-option-key="getOptionKey"
-                        :placeholder="$t('kind.select.placeholder')"
-                        :selectable="isSelectable(field.moduleField)"
-                        :loading="false"
-                        class="flex-grow-1"
-                        @input="onInlineFieldInput(item.r, field.moduleField, $event)"
-                      />
-                    </div>
-                    <div v-else-if="field.moduleField && field.moduleField.kind === 'Checkbox'">
-                      <div class="d-flex align-items-center">
+                    <!-- Field value display -->
+                    <div
+                      v-if="!isFieldChanged(item.id, field.key)"
+                      class="d-flex w-100"
+                    >
+                      <!-- Render appropriate input based on field type -->
+                      <div v-if="field.moduleField && field.moduleField && field.moduleField.kind === 'Select'">
+                        <c-input-select
+                          v-model="localValues[`${item.id}-${field.key}`]"
+                          :options="field.moduleField.options"
+                          :reduce="o => o.value"
+                          :get-option-label="getOptionLabel"
+                          :get-option-key="getOptionKey"
+                          :placeholder="$t('kind.select.placeholder')"
+                          :selectable="isSelectable(field.moduleField)"
+                          :loading="false"
+                          class="w-100"
+                          @input="onInlineFieldInput(item.r, field.moduleField, $event)"
+                        />
+                      </div>
+                      <div v-else-if="field.moduleField && field.moduleField.kind === 'Checkbox'">
                         <b-form-checkbox
                           v-model="localValues[`${item.id}-${field.key}`]"
                           :switch="field.moduleField.options.switch"
@@ -618,163 +522,281 @@
                           {{ field.moduleField.options.label || '' }}
                         </b-form-checkbox>
                       </div>
-                    </div>
-                    <div v-else-if="field.moduleField && field.moduleField.kind === 'Record'">
-                      <c-input-select
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :options="field.moduleField.options"
-                        :reduce="o => o.value"
-                        :get-option-label="getOptionLabel"
-                        :get-option-key="getOptionKey"
-                        :placeholder="$t('kind.record.suggestionPlaceholder')"
-                        :selectable="isSelectable(field.moduleField)"
-                        :loading="false"
-                        :clearable="false"
-                        :filterable="false"
-                        :searchable="true"
-                        class="flex-grow-1"
-                        @input="onInlineFieldInput(item.r, field.moduleField, $event)"
-                        @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
-                      >
-                        <template #option="option">
-                          <field-viewer
-                            v-if="field.moduleField.options.labelField && option.values[field.moduleField.options.labelField.name]"
-                            :field="field.moduleField.options.labelField"
-                            :record="option"
-                            :namespace="namespace"
-                            disable-click
-                            value-only
-                          />
-                          <template v-else>
-                            {{ option.recordID }}
+                      <div v-else-if="field.moduleField && field.moduleField.kind === 'Record'">
+                        <c-input-select
+                          v-model="localValues[`${item.id}-${field.key}`]"
+                          :options="field.moduleField.options"
+                          :reduce="o => o.value"
+                          :get-option-label="getOptionLabel"
+                          :get-option-key="getOptionKey"
+                          :placeholder="$t('kind.record.suggestionPlaceholder')"
+                          :selectable="isSelectable(field.moduleField)"
+                          :loading="false"
+                          :clearable="false"
+                          :filterable="false"
+                          :searchable="true"
+                          class="w-100"
+                          @input="onInlineFieldInput(item.r, field.moduleField, $event)"
+                          @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
+                        >
+                          <template #option="option">
+                            <field-viewer
+                              v-if="field.moduleField.options.labelField && option.values[field.moduleField.options.labelField.name]"
+                              :field="field.moduleField.options.labelField"
+                              :record="option"
+                              :namespace="namespace"
+                              disable-click
+                              value-only
+                            />
+                            <template v-else>
+                              {{ option.recordID }}
+                            </template>
                           </template>
-                        </template>
-                        <template #selected-option="option">
-                          <field-viewer
-                            v-if="field.moduleField.options.labelField && getRecordByID(option.label).values[field.moduleField.options.labelField.name]"
-                            :field="field.moduleField.options.labelField"
-                            :record="getRecordByID(option.label)"
-                            :namespace="namespace"
-                            disable-click
-                            value-only
-                          />
-                          <template v-else>
-                            {{ option.label }}
+                          <template #selected-option="option">
+                            <field-viewer
+                              v-if="field.moduleField.options.labelField && getRecordByID(option.label).values[field.moduleField.options.labelField.name]"
+                              :field="field.moduleField.options.labelField"
+                              :record="getRecordByID(option.label)"
+                              :namespace="namespace"
+                              disable-click
+                              value-only
+                            />
+                            <template v-else>
+                              {{ option.label }}
+                            </template>
                           </template>
-                        </template>
-                      </c-input-select>
-                    </div>
-                    <div v-else-if="field.moduleField && field.moduleField.kind === 'User'">
-                      <c-input-select
-                        v-model="localValues[`${item.id}-${field.key}`]"
-                        :options="field.moduleField.options"
-                        :reduce="o => o.value"
-                        :get-option-label="getOptionLabel"
-                        :get-option-key="getOptionKey"
-                        :placeholder="$t('kind.user.suggestionPlaceholder')"
-                        :selectable="isSelectable(field.moduleField)"
-                        :loading="false"
-                        :clearable="field.moduleField.name !== 'ownedBy'"
-                        :filterable="false"
-                        :searchable="true"
-                        class="flex-grow-1"
-                        @input="onInlineFieldInput(item.r, field.moduleField, $event)"
-                        @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
-                      >
-                        <template #option="option">
-                          <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
-                          <span v-else>No user</span>
-                        </template>
-                        <template #selected-option="option">
-                          <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
-                          <span v-else>No user</span>
-                        </template>
-                      </c-input-select>
-                    </div>
-                    <div v-else>
-                      <div>{{ getFieldValue(item.r, field.moduleField) }}</div>
+                        </c-input-select>
+                      </div>
+                      <div v-else-if="field.moduleField && field.moduleField.kind === 'User'">
+                        <c-input-select
+                          v-model="localValues[`${item.id}-${field.key}`]"
+                          :options="field.moduleField.options"
+                          :reduce="o => o.value"
+                          :get-option-label="getOptionLabel"
+                          :get-option-key="getOptionKey"
+                          :placeholder="$t('kind.user.suggestionPlaceholder')"
+                          :selectable="isSelectable(field.moduleField)"
+                          :loading="false"
+                          :clearable="field.moduleField.name !== 'ownedBy'"
+                          :filterable="false"
+                          :searchable="true"
+                          class="w-100"
+                          @input="onInlineFieldInput(item.r, field.moduleField, $event)"
+                          @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
+                        >
+                          <template #option="option">
+                            <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
+                            <span v-else>No user</span>
+                          </template>
+                          <template #selected-option="option">
+                            <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
+                            <span v-else>No user</span>
+                          </template>
+                        </c-input-select>
+                      </div>
+                      <div v-else>
+                        <!-- Fallback to regular viewer -->
+                        <field-viewer
+                          :field="field.moduleField"
+                          value-only
+                          :record="item.r"
+                          :module="module"
+                          :namespace="namespace"
+                          :extra-options="options"
+                          include-styles
+                        />
+                      </div>
                     </div>
 
-                    <!-- Save button -->
-                    <b-button
-                      variant="outline-success"
-                      size="sm"
-                      class="mt-1"
-                      @click.stop="saveInlineField(item.r, field.moduleField)"
+                    <!-- Show save button when field has changes -->
+                    <div
+                      v-else
+                      class="d-flex align-items-start gap-1"
                     >
-                      <font-awesome-icon :icon="['fas', 'save']" />
-                    </b-button>
+                      <!-- Same input as above but with save button -->
+                      <div v-if="field.moduleField && field.moduleField && field.moduleField.kind === 'Select'">
+                        <c-input-select
+                          v-model="localValues[`${item.id}-${field.key}`]"
+                          :options="field.moduleField.options"
+                          :reduce="o => o.value"
+                          :get-option-label="getOptionLabel"
+                          :get-option-key="getOptionKey"
+                          :placeholder="$t('kind.select.placeholder')"
+                          :selectable="isSelectable(field.moduleField)"
+                          :loading="false"
+                          class="flex-grow-1"
+                          @input="onInlineFieldInput(item.r, field.moduleField, $event)"
+                        />
+                      </div>
+                      <div v-else-if="field.moduleField && field.moduleField.kind === 'Checkbox'">
+                        <div class="d-flex align-items-center">
+                          <b-form-checkbox
+                            v-model="localValues[`${item.id}-${field.key}`]"
+                            :switch="field.moduleField.options.switch"
+                            :labels="field.moduleField.options.switch ? checkboxLabel(field.moduleField) : {}"
+                            @change="onInlineFieldInput(item.r, field.moduleField, $event)"
+                          >
+                            {{ field.moduleField.options.label || '' }}
+                          </b-form-checkbox>
+                        </div>
+                      </div>
+                      <div v-else-if="field.moduleField && field.moduleField.kind === 'Record'">
+                        <c-input-select
+                          v-model="localValues[`${item.id}-${field.key}`]"
+                          :options="field.moduleField.options"
+                          :reduce="o => o.value"
+                          :get-option-label="getOptionLabel"
+                          :get-option-key="getOptionKey"
+                          :placeholder="$t('kind.record.suggestionPlaceholder')"
+                          :selectable="isSelectable(field.moduleField)"
+                          :loading="false"
+                          :clearable="false"
+                          :filterable="false"
+                          :searchable="true"
+                          class="flex-grow-1"
+                          @input="onInlineFieldInput(item.r, field.moduleField, $event)"
+                          @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
+                        >
+                          <template #option="option">
+                            <field-viewer
+                              v-if="field.moduleField.options.labelField && option.values[field.moduleField.options.labelField.name]"
+                              :field="field.moduleField.options.labelField"
+                              :record="option"
+                              :namespace="namespace"
+                              disable-click
+                              value-only
+                            />
+                            <template v-else>
+                              {{ option.recordID }}
+                            </template>
+                          </template>
+                          <template #selected-option="option">
+                            <field-viewer
+                              v-if="field.moduleField.options.labelField && getRecordByID(option.label).values[field.moduleField.options.labelField.name]"
+                              :field="field.moduleField.options.labelField"
+                              :record="getRecordByID(option.label)"
+                              :namespace="namespace"
+                              disable-click
+                              value-only
+                            />
+                            <template v-else>
+                              {{ option.label }}
+                            </template>
+                          </template>
+                        </c-input-select>
+                      </div>
+                      <div v-else-if="field.moduleField && field.moduleField.kind === 'User'">
+                        <c-input-select
+                          v-model="localValues[`${item.id}-${field.key}`]"
+                          :options="field.moduleField.options"
+                          :reduce="o => o.value"
+                          :get-option-label="getOptionLabel"
+                          :get-option-key="getOptionKey"
+                          :placeholder="$t('kind.user.suggestionPlaceholder')"
+                          :selectable="isSelectable(field.moduleField)"
+                          :loading="false"
+                          :clearable="field.moduleField.name !== 'ownedBy'"
+                          :filterable="false"
+                          :searchable="true"
+                          class="flex-grow-1"
+                          @input="onInlineFieldInput(item.r, field.moduleField, $event)"
+                          @search="onInlineFieldSearch(item.r, field.moduleField, $event)"
+                        >
+                          <template #option="option">
+                            <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
+                            <span v-else>No user</span>
+                          </template>
+                          <template #selected-option="option">
+                            <span v-if="option">{{ option.name || option.username || option.email || `<@${option.userID}>` }}</span>
+                            <span v-else>No user</span>
+                          </template>
+                        </c-input-select>
+                      </div>
+                      <div v-else>
+                        <div>{{ getFieldValue(item.r, field.moduleField) }}</div>
+                      </div>
+
+                      <!-- Save button -->
+                      <b-button
+                        variant="outline-success"
+                        size="sm"
+                        class="mt-1"
+                        @click.stop="saveInlineField(item.r, field.moduleField)"
+                      >
+                        <font-awesome-icon :icon="['fas', 'save']" />
+                      </b-button>
+                    </div>
                   </div>
-                </div>
 
-                <!-- Fallback to original behavior for non-inline-editable fields -->
-                <div v-else>
-                  <field-editor
-                    v-if="field.moduleField.canUpdateRecordValue && field.editable"
-                    :field="field.moduleField"
-                    value-only
-                    :record="item.r"
-                    :module="module"
-                    :namespace="namespace"
-                    :errors="recordErrors(item, field)"
-                    class="mb-0"
-                    style="min-width: 250px;"
-                    @click.stop
-                  />
-
-                  <div
-                    v-else-if="field.moduleField.canReadRecordValue && !field.edit"
-                    class="d-flex mb-0 gap-1"
-                    style="min-width: 10rem;"
-                  >
-                    <field-viewer
+                  <!-- Fallback to original behavior for non-inline-editable fields -->
+                  <div v-else>
+                    <field-editor
+                      v-if="field.moduleField.canUpdateRecordValue && field.editable"
                       :field="field.moduleField"
                       value-only
                       :record="item.r"
                       :module="module"
                       :namespace="namespace"
-                      :extra-options="options"
-                      include-styles
+                      :errors="recordErrors(item, field)"
+                      class="mb-0"
+                      style="min-width: 250px;"
+                      @click.stop
                     />
 
                     <div
-                      v-if="showInlineActions(field)"
-                      class="d-flex flex-nowrap align-items-start gap-1 inline-actions"
+                      v-else-if="field.moduleField.canReadRecordValue && !field.edit"
+                      class="d-flex mb-0 gap-1"
+                      style="min-width: 10rem;"
                     >
-                      <b-button
-                        v-if="showInlineEdit(field)"
-                        v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), boundary: 'body' }"
-                        variant="outline-extra-light"
-                        size="sm"
-                        class="text-secondary border-0"
-                        @click.stop="editInlineField(item.r, field.key)"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'pen']"
-                        />
-                      </b-button>
+                      <field-viewer
+                        :field="field.moduleField"
+                        value-only
+                        :record="item.r"
+                        :module="module"
+                        :namespace="namespace"
+                        :extra-options="options"
+                        include-styles
+                      />
 
-                      <b-button
-                        v-if="showInlineFilter()"
-                        v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filterByValue'), boundary: 'body' }"
-                        variant="outline-extra-light"
-                        size="sm"
-                        class="text-secondary border-0"
-                        @click.stop="filterByValue(item.r, field)"
+                      <div
+                        v-if="showInlineActions(field)"
+                        class="d-flex flex-nowrap align-items-start gap-1 inline-actions"
                       >
-                        <font-awesome-icon
-                          :icon="['fas', 'filter']"
-                        />
-                      </b-button>
+                        <b-button
+                          v-if="showInlineEdit(field)"
+                          v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), boundary: 'body' }"
+                          variant="outline-extra-light"
+                          size="sm"
+                          class="text-secondary border-0"
+                          @click.stop="editInlineField(item.r, field.key)"
+                        >
+                          <font-awesome-icon
+                            :icon="['fas', 'pen']"
+                          />
+                        </b-button>
+
+                        <b-button
+                          v-if="showInlineFilter()"
+                          v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filterByValue'), boundary: 'body' }"
+                          variant="outline-extra-light"
+                          size="sm"
+                          class="text-secondary border-0"
+                          @click.stop="filterByValue(item.r, field)"
+                        >
+                          <font-awesome-icon
+                            :icon="['fas', 'filter']"
+                          />
+                        </b-button>
+                      </div>
                     </div>
-                  </div>
 
-                  <i
-                    v-else
-                    class="text-primary"
-                  >
-                    {{ $t('field.noPermission') }}
-                  </i>
+                    <i
+                      v-else
+                      class="text-primary"
+                    >
+                      {{ $t('field.noPermission') }}
+                    </i>
+                  </div>
                 </div>
               </b-td>
 
@@ -1293,6 +1315,10 @@ export default {
 
       processingTimeout: undefined,
       cancelled: false,
+
+      // NEW: Map of parentRecordID -> Record object
+      // Used to look up parent field values for display
+      resolvedParentRecords: {},
     }
   },
 
@@ -1605,16 +1631,28 @@ export default {
         ? []
         : this.options.editFields.map(({ name }) => name)
 
+      // Separate parent fields from child fields before filtering
+      const childFieldConfigs = (this.options.fields || []).filter(f => !f.isParentField)
+      const parentFieldConfigs = (this.options.fields || []).filter(f => f.isParentField)
+
       if (!this.options.hideConfigureFieldsButton && this.customConfiguredFields.length > 0) {
         fields = this.recordListModule.filterFields(this.customConfiguredFields)
-      } else if (this.options.fields.length > 0) {
-        fields = this.recordListModule.filterFields(this.options.fields)
-      } else {
-        // Record list block does not have any configured fields
-        // Use first five fields from the module.
+      } else if (childFieldConfigs.length > 0) {
+        fields = this.recordListModule.filterFields(childFieldConfigs)
+      } else if (this.options.fields.length > 0 && parentFieldConfigs.length === this.options.fields.length) {
+        // All fields are parent fields — no child fields configured, use first 5 as fallback
+        fields = [...this.recordListModule.fields.slice(0, 5), ...this.recordListModule.systemFields()]
+      } else if (!this.options.fields || this.options.fields.length === 0) {
         fields = [...this.recordListModule.fields.slice(0, 5), ...this.recordListModule.systemFields()]
       }
 
+      // If fields is still empty after the above conditions (e.g., customConfiguredFields had invalid IDs),
+      // fall back to first 5 fields and system fields to ensure the table has columns
+      if (fields.length === 0) {
+        fields = [...this.recordListModule.fields.slice(0, 5), ...this.recordListModule.systemFields()]
+      }
+
+      // Build configured child field column definitions (existing logic)
       const configured = fields.map(mf => ({
         key: mf.name,
         label: mf.isSystem ? this.$t(`field:system.${mf.name}`) : mf.label || mf.name,
@@ -1625,16 +1663,61 @@ export default {
         editable: !!editable.find(f => mf.name === f),
         canEdit: this.isFieldEditable(mf),
         required: this.inlineEditing && mf.isRequired,
+        isParentField: false,
       }))
 
-      const pre = []
-      const post = []
+      // Build parent field column definitions
+      // These don't exist in the child module so we construct them manually
+      const linkFieldDef = this.recordListModule.fields.find(f => f.name === this.options.parentField)
+      const parentModule = (linkFieldDef && linkFieldDef.options && linkFieldDef.options.moduleID)
+        ? this.getModuleByID(linkFieldDef.options.moduleID)
+        : null
 
-      return [
-        ...pre,
-        ...configured,
-        ...post,
-      ]
+const parentConfigured = parentFieldConfigs
+        .map(pf => {
+          const actualField = parentModule ? parentModule.fields.find(f => f.name === pf.originalName) : null
+          if (!actualField) {
+            return null
+          }
+          return {
+            ...pf,
+            moduleField: actualField,
+            sortable: false, // parent fields can't be sorted server-side
+            filterable: false, // parent fields can't be filtered server-side
+            tdClass: 'record-value',
+            editable: false, // parent fields are read-only in the list
+            canEdit: false,
+            required: false,
+            isParentField: true,
+            parentModuleID: pf.parentModuleID,
+            originalName: pf.originalName,
+          }
+        })
+        .filter(Boolean)
+
+      // Merge in the correct order based on options.fields order
+      // so the user's configured column order is respected
+      if (parentFieldConfigs.length > 0 && this.options.fields.length > 0) {
+        // Rebuild in the order the user configured
+        const allConfigured = [...configured, ...parentConfigured]
+        const orderedFields = []
+
+        this.options.fields.forEach(configField => {
+          const match = allConfigured.find(c => c.key === configField.name)
+          if (match) orderedFields.push(match)
+        })
+
+        // Add any that weren't in options.fields (shouldn't happen but safety net)
+        allConfigured.forEach(c => {
+          if (!orderedFields.find(o => o.key === c.key)) {
+            orderedFields.push(c)
+          }
+        })
+
+        return orderedFields
+      }
+
+      return [...configured, ...parentConfigured]
     },
 
     canDeleteSelectedRecords () {
@@ -1723,6 +1806,26 @@ export default {
           value,
         }
       })
+    },
+
+    /**
+     * Returns only the fields marked as parent fields from the configured field list.
+     * These have isParentField: true and a parentModuleID set.
+     */
+    parentFieldConfigs () {
+      if (!this.options.fields || !this.options.fields.length) {
+        return []
+      }
+      return this.options.fields.filter(f => f.isParentField && f.parentModuleID)
+    },
+
+    /**
+     * Returns the field name in the CHILD module that links to the parent module.
+     * This is options.parentField — the field the user selected in the configurator
+     * as the link between child and parent (e.g. "candidateID").
+     */
+    parentLinkFieldName () {
+      return this.options.parentField || null
     },
   },
 
@@ -2239,21 +2342,6 @@ export default {
     prepRecordList () {
       const { moduleID, presort, prefilter, perPage } = this.options
 
-      // DEBUG: Log refField configuration
-      console.log('[DEBUG prepRecordList] refField:', this.options.refField)
-      console.log('[DEBUG prepRecordList] isGrandparent (options):', this.options.isGrandparent)
-      console.log('[DEBUG prepRecordList] isCommonField (options):', this.options.isCommonField)
-      console.log('[DEBUG prepRecordList] multiHopPath (options):', this.options.multiHopPath)
-      
-      // Use dynamically computed refFieldMeta instead of relying on persisted options
-      const meta = this.refFieldMeta || {}
-      console.log('[DEBUG prepRecordList] refFieldMeta:', meta)
-      console.log('[DEBUG prepRecordList] isGrandparent (meta):', meta.isGrandparent)
-      console.log('[DEBUG prepRecordList] isCommonField (meta):', meta.isCommonField)
-      console.log('[DEBUG prepRecordList] multiHopPath (meta):', meta.multiHopPath)
-      console.log('[DEBUG prepRecordList] refFieldPath:', this.refFieldPath)
-      console.log('[DEBUG prepRecordList] record:', this.record ? this.record.recordID : 'null')
-
       // Validate props
       if (!moduleID || !this.recordListModule) {
         throw Error(this.$t('record.moduleOrPageNotSet'))
@@ -2314,44 +2402,29 @@ export default {
             const fieldNames = meta.multiHopPath.join(', ')
             const gpFilter = `@multi-hop(${fieldNames}, ${this.record.recordID})`
             filter.push(gpFilter)
-            console.log('[DEBUG FILTER] Generated GRANDPARENT filter:', gpFilter)
 
-          } else {
-            // Non-grandparent: need a value from the current record's fields
+          } else if (meta.isCommonField) {
+            // Sibling/common field: both the child module and the page module
+            // share a link to the same third module. Use the value from the
+            // current record's field to filter.
             const refFieldName = this.options.refField
             const fieldValue = this.record.values
               ? this.record.values[refFieldName]
               : undefined
 
             if (fieldValue !== undefined && fieldValue !== null) {
-              if (meta.isCommonField) {
-                // Sibling/common field: direct equality using the shared linked value
-                const quoted = typeof fieldValue === 'string' ? `'${fieldValue}'` : fieldValue
-                const cfFilter = `(${refFieldName} = ${quoted})`
-                filter.push(cfFilter)
-                console.log('[DEBUG FILTER] Generated COMMON FIELD filter:', cfFilter)
-
-              } else if (this.refFieldPath && this.refFieldPath.length === 1) {
-                // Direct relationship
-                const drFilter = `(${this.refFieldPath[0].name} = ${fieldValue})`
-                filter.push(drFilter)
-                console.log('[DEBUG FILTER] Generated DIRECT RELATIONSHIP filter:', drFilter)
-
-              } else if (this.refFieldPath && this.refFieldPath.length > 1) {
-                // Multi-hop (but not grandparent - handled above)
-                const fieldNames = this.refFieldPath.map(f => f.name).join(', ')
-                const mhFilter = `@multi-hop(${fieldNames}, ${fieldValue})`
-                filter.push(mhFilter)
-                console.log('[DEBUG FILTER] Generated MULTI-HOP filter:', mhFilter)
-
-              } else {
-                // Fallback - direct relationship
-                const fbFilter = `(${this.options.refField} = ${fieldValue})`
-                filter.push(fbFilter)
-                console.log('[DEBUG FILTER] Generated FALLBACK filter:', fbFilter)
-              }
+              const quoted = typeof fieldValue === 'string' ? `'${fieldValue}'` : fieldValue
+              const cfFilter = `(${refFieldName} = ${quoted})`
+              filter.push(cfFilter)
             }
-            // If fieldValue is undefined/null, we skip adding the filter
+
+          } else {
+            // Standard direct relationship: the refField is a Record field in the
+            // child module that points to the page module (or an intermediate module).
+            // The child records store the parent's recordID in this field, so we
+            // filter by: refField = currentRecord.recordID
+            const directFilter = `(${this.options.refField} = ${this.record.recordID})`
+            filter.push(directFilter)
           }
         }
       }
@@ -2610,7 +2683,9 @@ export default {
       this.selected = []
 
       // Compute query based on query, prefilter and recordListFilter
-      const query = queryToFilter(this.query, this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.groupRecordListFilter)
+      // Filter out parent fields as they don't exist in the child module
+      const childFields = this.fields.filter(f => !f.isParentField)
+      const query = queryToFilter(this.query, this.prefilter, childFields.map(({ moduleField }) => moduleField), this.groupRecordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
 
@@ -2681,12 +2756,14 @@ export default {
         // Extract user IDs from record values and load all users
         const fields = this.fields.filter(f => f.moduleField).map(f => f.moduleField)
 
-        return Promise.all([
-          this.fetchUsers(fields, records),
-          this.fetchRecords(namespaceID, fields, records),
-        ]).then(() => {
-          this.items = records.map(r => this.wrapRecord(r))
-        })
+return Promise.all([
+        this.fetchUsers(fields, records),
+        this.fetchRecords(namespaceID, fields, records),
+        // Only fetch parent records if parent fields feature is enabled
+        this.options.includeParentFields ? this.fetchParentRecords(namespaceID, records) : Promise.resolve(),
+      ]).then(() => {
+        this.items = records.map(r => this.wrapRecord(r))
+      })
       }).catch((e) => {
         if (!axios.isCancel(e)) {
           this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
@@ -3123,6 +3200,7 @@ export default {
       this.showCustomSummariesModal = false
       this.processingTimeout = undefined
       this.cancelled = false
+      this.resolvedParentRecords = {}
     },
 
     abortRequests () {
@@ -3137,6 +3215,99 @@ export default {
 
     refreshAndResetPagination () {
       this.refresh(true)
+    },
+
+    /**
+     * Extract the parent record ID from a child record's link field.
+     * Handles both plain string IDs and objects with recordID property.
+     *
+     * @param {Object} childRecord - the child record
+     * @returns {string|null} the parent record ID
+     */
+    getParentRecordID (childRecord) {
+      if (!this.parentLinkFieldName) return null
+      const val = childRecord.values[this.parentLinkFieldName]
+      if (!val) return null
+      // Handle both plain string ID and object with recordID property
+      if (typeof val === 'string') return val
+      if (typeof val === 'object') {
+        if (val.recordID) return val.recordID
+        if (val.value) return String(val.value)
+      }
+      return String(val)
+    },
+    async fetchParentRecords (namespaceID, childRecords) {
+      const MAX_PARENT_IDS = 200
+
+      if (!this.options.includeParentFields || !this.parentLinkFieldName || !this.parentFieldConfigs.length) {
+        return
+      }
+
+      // Find the link field definition in the child module
+      const linkField = this.recordListModule.fields.find(f => f.name === this.parentLinkFieldName)
+      if (!linkField || linkField.kind !== 'Record' || !linkField.options || !linkField.options.moduleID) {
+        return
+      }
+
+      const parentModuleID = linkField.options.moduleID
+
+      // Collect all unique parent record IDs from child records
+      // record.values[linkFieldName] holds the linked record's ID as a string
+      const parentRecordIDs = new Set()
+      childRecords.forEach(record => {
+        const val = record.values[this.parentLinkFieldName]
+        if (val && val !== '0') {
+          // Handle both string and array (multi-value) cases
+          if (Array.isArray(val)) {
+            val.forEach(v => v && parentRecordIDs.add(v))
+          } else {
+            parentRecordIDs.add(val)
+          }
+        }
+      })
+
+      if (parentRecordIDs.size === 0) {
+        return
+      }
+
+      // Build a query using OR-based equality checks.
+      // The backend's query parser does not support the IN operator on single-value
+      // fields like recordID (see dialect.go opHandlerIn), so we use OR chains instead:
+      //   recordID = 'id1' OR recordID = 'id2' OR recordID = 'id3'
+      const idList = [...parentRecordIDs].slice(0, MAX_PARENT_IDS)
+      if (parentRecordIDs.size > MAX_PARENT_IDS) {
+        console.warn(`[RecordList] Truncating parent record fetch to ${MAX_PARENT_IDS} of ${parentRecordIDs.size} IDs`)
+      }
+      const query = idList.map(id => `recordID = '${id}'`).join(' OR ')
+
+      try {
+        // Use recordListCancellable pattern to match existing codebase
+        const { response } = this.$ComposeAPI.recordListCancellable({
+          namespaceID,
+          moduleID: parentModuleID,
+          query,
+          limit: parentRecordIDs.size,
+        })
+        const { set } = await response()
+
+        // Get the parent module definition so we can construct proper Record objects
+        const parentModule = this.getModuleByID(parentModuleID)
+
+        // Build a lookup map: parentRecordID -> Record object
+        const resolved = {}
+        set.forEach(r => {
+          const record = parentModule
+            ? new compose.Record(r, parentModule)
+            : r
+          resolved[r.recordID] = record
+        })
+
+        // Replace the whole object so Vue 2 reactivity picks up the change
+        this.resolvedParentRecords = { ...resolved }
+      } catch (e) {
+        console.warn('[RecordList] Failed to fetch parent records:', e)
+        // Non-fatal — rows will just show empty for parent fields
+      }
     },
 
     destroyEvents () {

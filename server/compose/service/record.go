@@ -461,14 +461,17 @@ func (svc record) resolveMultiHopFilters(ctx context.Context, namespaceID uint64
 		// If no intermediate fields are specified, we need to determine them
 		// based on the module hierarchy
 		if len(filter.IntermediateFields) == 0 {
-			// For now, we'll use a simple approach: assume the target field
-			// is a reference field and we need to find records that reference
-			// the target value through intermediate modules
-			// This is a simplified implementation - in production, you'd want
-			// to determine the exact module hierarchy based on field metadata
+			// This case should not occur in normal operation as frontend always provides at least one intermediate field
+			// For safety, return empty query to avoid incorrect results
+			return "", nil
+		}
+
+		// Traverse intermediate fields in reverse order
+		for i := len(filter.IntermediateFields) - 1; i >= 0; i-- {
+			fieldName := filter.IntermediateFields[i]
 
 			// Build a query to find records with this field value
-			query := fmt.Sprintf("%s = '%s'", filter.TargetField, currentValue)
+			query := fmt.Sprintf("%s = '%s'", fieldName, currentValue)
 
 			// Find the module that contains this field
 			modules, _, err := svc.module.Find(ctx, types.ModuleFilter{NamespaceID: namespaceID})
@@ -477,13 +480,16 @@ func (svc record) resolveMultiHopFilters(ctx context.Context, namespaceID uint64
 			}
 
 			var intermediateIDs []string
+			var foundModule bool
 
 			// Find the first module that has this field
 			for _, mod := range modules {
 				// Check if this module has the field
-				if mod.Fields.FindByName(filter.TargetField) == nil {
+				if mod.Fields.FindByName(fieldName) == nil {
 					continue
 				}
+
+				foundModule = true
 
 				// Query records in this module
 				moduleFilter := types.RecordFilter{
@@ -506,64 +512,21 @@ func (svc record) resolveMultiHopFilters(ctx context.Context, namespaceID uint64
 				break
 			}
 
-			if len(intermediateIDs) == 0 {
-				// No intermediate records found, return empty query
-				return "1 = 0", nil
+			if !foundModule || len(intermediateIDs) == 0 {
+				// No module found or no records -> cannot resolve filter, return empty query
+				// This will result in no records being returned, which is safer than incorrect results
+				return "", nil
 			}
 
 			// Update current value to be the list of IDs
 			currentValue = strings.Join(intermediateIDs, ",")
-		} else {
-			// Traverse intermediate fields in reverse order
-			for i := len(filter.IntermediateFields) - 1; i >= 0; i-- {
-				fieldName := filter.IntermediateFields[i]
 
-				// Build a query to find records with this field value
-				query := fmt.Sprintf("%s = '%s'", fieldName, currentValue)
-
-				// Find the module that contains this field
-				modules, _, err := svc.module.Find(ctx, types.ModuleFilter{NamespaceID: namespaceID})
-				if err != nil {
-					return "", err
-				}
-
-				var intermediateIDs []string
-
-				// Find the first module that has this field
-				for _, mod := range modules {
-					// Check if this module has the field
-					if mod.Fields.FindByName(fieldName) == nil {
-						continue
-					}
-
-					// Query records in this module
-					moduleFilter := types.RecordFilter{
-						ModuleID:    mod.ID,
-						NamespaceID: namespaceID,
-						Query:       query,
-					}
-
-					records, _, err := dalutils.ComposeRecordsList(ctx, svc.dal, mod, moduleFilter)
-					if err != nil {
-						continue // Skip modules that fail
-					}
-
-					// Collect record IDs
-					for _, rec := range records {
-						intermediateIDs = append(intermediateIDs, strconv.FormatUint(rec.ID, 10))
-					}
-
-					// Break after finding the first module with the field
-					break
-				}
-
-				if len(intermediateIDs) == 0 {
-					// No intermediate records found, return empty query
-					return "1 = 0", nil
-				}
-
-				// Update current value to be the list of IDs
-				currentValue = strings.Join(intermediateIDs, ",")
+			// If we have more intermediate fields to process, currentValue must be a single ID
+			// If it's a list, we cannot continue (would require additional hops)
+			if i > 0 && strings.Contains(currentValue, ",") {
+				// Cannot traverse further with a list of IDs (would require additional hops)
+				// Return empty query to avoid incorrect results
+				return "", nil
 			}
 		}
 
