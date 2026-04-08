@@ -104,36 +104,6 @@
                   :labels="checkboxLabel"
                 />
               </b-form-group>
-
-              <b-form-group
-                v-if="options.includeParentFields"
-                :label="$t('recordList.parentFields.field')"
-                label-class="text-primary"
-              >
-                <c-input-select
-                  v-model="options.parentField"
-                  :options="availableParentFields"
-                  label="label"
-                  :reduce="f => f.name"
-                  :placeholder="$t('general.label.none')"
-                />
-
-                <b-form-text class="text-secondary small">
-                  {{ $t('recordList.parentFields.footnote') }}
-                </b-form-text>
-              </b-form-group>
-
-              <b-form-group
-                v-if="options.includeParentFields"
-                :label="$t('recordList.parentFields.hideModuleLabel')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  v-model="options.hideParentModuleLabel"
-                  switch
-                  :labels="checkboxLabel"
-                />
-              </b-form-group>
             </b-col>
 
             <b-col
@@ -1248,7 +1218,7 @@ export default {
               isCommonField: false,
               isGrandparent: true,
               label: `${field.name} (${this.$t('recordList.refField.grandparent')})`,
-              multiHopPath: multiHopPath,
+              multiHopPath,
             })
           }
         })
@@ -1310,10 +1280,10 @@ export default {
       // IMPORTANT: Prioritize grandparent fields over non-grandparent fields
       const uniqueFields = []
       const fieldIds = new Set()
-      
+
       // First pass: add all grandparent fields (they take priority)
       const allFields = [...grandparentFields, ...resultFields]
-      
+
       allFields.forEach(field => {
         const fieldId = `${field.name}-${field.options?.moduleID}`
         if (!fieldIds.has(fieldId)) {
@@ -1341,49 +1311,17 @@ export default {
     },
 
     /**
-     * Available parent fields for the dropdown
-     * These are Record-kind fields in the RECORD LIST MODULE that point to some parent module
-     * The user picks which link field to use for joining parent records
-     */
-    availableParentFields () {
-      if (!this.recordListModule) {
-        return []
-      }
-
-      // Find all Record-kind fields in the record list module that point to any other module
-      // These are candidates for the "parent link field" — the field that joins child to parent
-      return this.recordListModule.fields
-        .filter(field => {
-          if (field.kind !== 'Record') return false
-          if (!field.options || !field.options.moduleID) return false
-          return true
-        })
-        .map(field => {
-          const linkedModule = this.getModuleByID(field.options.moduleID)
-          return {
-            ...field,
-            label: linkedModule
-              ? `${field.label || field.name} → ${linkedModule.name}`
-              : field.label || field.name,
-          }
-        })
-    },
-
-    /**
      * Configuration for passing parent module fields to the field picker
      * Returns the parent module and its fields when the feature is enabled
      */
     parentModuleConfig () {
-      // Only return data if feature is enabled and a parent field is selected
-      if (!this.options.includeParentFields || !this.options.parentField) {
+      if (!this.options.includeParentFields || !this.options.refField) {
         return {
           extraModule: null,
           extraModuleFields: [],
         }
       }
 
-      // Find the selected parent field in the RECORD LIST MODULE (not the page module)
-      // options.parentField is the name of a field IN THE CHILD/record list module that points UP to a parent
       if (!this.recordListModule) {
         return {
           extraModule: null,
@@ -1391,7 +1329,7 @@ export default {
         }
       }
 
-      const linkField = this.recordListModule.fields.find(f => f.name === this.options.parentField)
+      const linkField = this.recordListModule.fields.find(f => f.name === this.options.refField)
       if (!linkField || linkField.kind !== 'Record' || !linkField.options || !linkField.options.moduleID) {
         return {
           extraModule: null,
@@ -1399,7 +1337,6 @@ export default {
         }
       }
 
-      // Get the parent module
       const parentModule = this.getModuleByID(linkField.options.moduleID)
       if (!parentModule) {
         return {
@@ -1415,7 +1352,6 @@ export default {
         },
         extraModuleFields: parentModule.fields.map(f => ({
           ...f,
-          // Store original name for reference
           originalName: f.name,
         })),
       }
@@ -1480,31 +1416,22 @@ export default {
       this.options.editFields = this.options.editFields.filter(a => fields.some(b => a.name === b.name))
     },
 
-    'options.parentField' (newVal, oldVal) {
-      if (newVal !== oldVal) {
-        if (this.options.fields && this.options.fields.length > 0) {
-          this.options.fields = this.options.fields.filter(f => !f.isParentField)
-        }
-      }
-    },
-
     'options.includeParentFields' (newVal) {
       if (!newVal) {
-        // Remove any parent fields from the configured fields list
         if (this.options.fields && this.options.fields.length) {
           this.options.fields = this.options.fields.filter(f => !f.isParentField)
         }
-        // Clear the parent field selection
-        this.options.parentField = null
       }
     },
 
     'options.refField' (newRefField, oldRefField) {
       if (!newRefField) {
-        // Clear the stored properties when field is deselected
         this.options.isGrandparent = undefined
         this.options.isCommonField = undefined
         this.options.multiHopPath = undefined
+        if (this.options.fields && this.options.fields.length) {
+          this.options.fields = this.options.fields.filter(f => !f.isParentField)
+        }
         return
       }
 
@@ -1512,7 +1439,11 @@ export default {
         return
       }
 
-      // Find the selected field in parentFields to get isGrandparent, isCommonField, multiHopPath
+      // Clear parent fields when refField changes (parent module may have changed)
+      if (this.options.fields && this.options.fields.length) {
+        this.options.fields = this.options.fields.filter(f => !f.isParentField)
+      }
+
       const selectedField = this.parentFields.find(f => f.name === newRefField)
       if (selectedField) {
         this.options.isGrandparent = selectedField.isGrandparent
@@ -1527,10 +1458,9 @@ export default {
 
     parentFields: {
       handler (fields) {
-        if (!this.options.parentField) return
-        const isValid = fields.some(f => f.name === this.options.parentField)
+        if (!this.options.refField) return
+        const isValid = fields.some(f => f.name === this.options.refField)
         if (!isValid) {
-          this.options.parentField = null
           this.options.isGrandparent = undefined
           this.options.isCommonField = undefined
           this.options.multiHopPath = undefined

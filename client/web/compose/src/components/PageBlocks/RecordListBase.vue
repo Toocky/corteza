@@ -1388,7 +1388,7 @@ export default {
     /**
      * Computes the grandparent/common field metadata dynamically
      * This avoids relying on persisted options which may not be saved properly
-     * 
+     *
      * Returns an object with:
      * - isGrandparent: true if this is a grandparent relationship (multi-hop via intermediate module)
      * - isCommonField: true if this is a common/sibling field relationship
@@ -1400,7 +1400,7 @@ export default {
         return {
           isGrandparent: false,
           isCommonField: false,
-          multiHopPath: null
+          multiHopPath: null,
         }
       }
 
@@ -1409,25 +1409,40 @@ export default {
 
       // Find the refField in the record list module
       const refFieldDef = this.recordListModule.fields.find(
-        f => f.kind === 'Record' && f.name === refField
+        f => f.kind === 'Record' && f.name === refField,
       )
 
       if (!refFieldDef || !refFieldDef.options || !refFieldDef.options.moduleID) {
         return {
           isGrandparent: false,
           isCommonField: false,
-          multiHopPath: null
+          multiHopPath: null,
         }
       }
 
       const refModuleID = refFieldDef.options.moduleID
 
       // ================================================
-      // Check for grandparent relationship (multi-hop)
+      // 1. Check for DIRECT relationship first
       // ================================================
-      // Strategy: traverse from the referenced module outward to see if we can reach the target module
-      // If the path length > 1, it's a grandparent relationship
-      
+      // If the refField points directly to the page module (targetModuleID),
+      // this is a standard parent→child relationship. No multi-hop or common
+      // field logic needed — just filter by refField = currentRecord.recordID.
+      if (refModuleID === targetModuleID) {
+        return {
+          isGrandparent: false,
+          isCommonField: false,
+          multiHopPath: null,
+        }
+      }
+
+      // ================================================
+      // 2. Check for grandparent relationship (multi-hop)
+      // ================================================
+      // Strategy: traverse from the referenced module outward to see if we
+      // can reach the target module. If the path length > 1, it's a
+      // grandparent relationship.
+
       const visited = new Set()
       const queue = [[refModuleID, [refField]]] // [moduleID, pathSoFar]
 
@@ -1451,19 +1466,11 @@ export default {
 
             // If we reached the target module
             if (nextModuleID === targetModuleID) {
-              // If path length > 1, this is a grandparent relationship
-              if (newPath.length > 1) {
-                return {
-                  isGrandparent: true,
-                  isCommonField: false,
-                  multiHopPath: newPath
-                }
-              }
-              // Direct relationship - not grandparent
+              // Path always has length >= 2 here (refField + at least one hop)
               return {
-                isGrandparent: false,
+                isGrandparent: true,
                 isCommonField: false,
-                multiHopPath: null
+                multiHopPath: newPath,
               }
             }
 
@@ -1474,39 +1481,38 @@ export default {
       }
 
       // ================================================
-      // Check for common/sibling field relationship
+      // 3. Check for common/sibling field relationship
       // ================================================
-      // Get the target (parent) module
+      // The refField points to a module that is NOT the page module and
+      // NOT reachable via a grandparent chain.  Check whether the page
+      // module also links to the same module (sibling relationship).
       const targetModule = this.getModuleByID(targetModuleID)
       if (targetModule) {
-        // Check if the refField's module is the same as target or linked from target
+        // Collect modules the page module (target) links to — but NOT itself
         const parentLinkedModuleIDs = new Set()
-        
-        // Get all modules that the target module links to
+
         targetModule.fields.forEach(field => {
           if (field.kind === 'Record' && field.options && field.options.moduleID) {
             parentLinkedModuleIDs.add(field.options.moduleID)
           }
         })
-        // Also include the target module itself
-        parentLinkedModuleIDs.add(targetModuleID)
 
-        // If the refField points to a module that the target also links to,
+        // If the refField points to a module that the page module also links to,
         // this is a common/sibling relationship
         if (parentLinkedModuleIDs.has(refModuleID)) {
           return {
             isGrandparent: false,
             isCommonField: true,
-            multiHopPath: null
+            multiHopPath: null,
           }
         }
       }
 
-      // Not a grandparent or common field relationship
+      // Not a grandparent or common field relationship — treat as direct
       return {
         isGrandparent: false,
         isCommonField: false,
-        multiHopPath: null
+        multiHopPath: null,
       }
     },
 
@@ -1668,12 +1674,12 @@ export default {
 
       // Build parent field column definitions
       // These don't exist in the child module so we construct them manually
-      const linkFieldDef = this.recordListModule.fields.find(f => f.name === this.options.parentField)
+      const linkFieldDef = this.recordListModule.fields.find(f => f.name === this.options.refField)
       const parentModule = (linkFieldDef && linkFieldDef.options && linkFieldDef.options.moduleID)
         ? this.getModuleByID(linkFieldDef.options.moduleID)
         : null
 
-const parentConfigured = parentFieldConfigs
+      const parentConfigured = parentFieldConfigs
         .map(pf => {
           const actualField = parentModule ? parentModule.fields.find(f => f.name === pf.originalName) : null
           if (!actualField) {
@@ -1681,11 +1687,12 @@ const parentConfigured = parentFieldConfigs
           }
           return {
             ...pf,
+            key: pf.name,
             moduleField: actualField,
-            sortable: false, // parent fields can't be sorted server-side
-            filterable: false, // parent fields can't be filtered server-side
+            sortable: false,
+            filterable: false,
             tdClass: 'record-value',
-            editable: false, // parent fields are read-only in the list
+            editable: false,
             canEdit: false,
             required: false,
             isParentField: true,
@@ -1821,11 +1828,10 @@ const parentConfigured = parentFieldConfigs
 
     /**
      * Returns the field name in the CHILD module that links to the parent module.
-     * This is options.parentField — the field the user selected in the configurator
-     * as the link between child and parent (e.g. "candidateID").
+     * This is options.refField — the reference field the user selected in the configurator.
      */
     parentLinkFieldName () {
-      return this.options.parentField || null
+      return this.options.refField || null
     },
   },
 
@@ -2402,7 +2408,6 @@ const parentConfigured = parentFieldConfigs
             const fieldNames = meta.multiHopPath.join(', ')
             const gpFilter = `@multi-hop(${fieldNames}, ${this.record.recordID})`
             filter.push(gpFilter)
-
           } else if (meta.isCommonField) {
             // Sibling/common field: both the child module and the page module
             // share a link to the same third module. Use the value from the
@@ -2417,7 +2422,6 @@ const parentConfigured = parentFieldConfigs
               const cfFilter = `(${refFieldName} = ${quoted})`
               filter.push(cfFilter)
             }
-
           } else {
             // Standard direct relationship: the refField is a Record field in the
             // child module that points to the page module (or an intermediate module).
@@ -2756,14 +2760,14 @@ const parentConfigured = parentFieldConfigs
         // Extract user IDs from record values and load all users
         const fields = this.fields.filter(f => f.moduleField).map(f => f.moduleField)
 
-return Promise.all([
-        this.fetchUsers(fields, records),
-        this.fetchRecords(namespaceID, fields, records),
-        // Only fetch parent records if parent fields feature is enabled
-        this.options.includeParentFields ? this.fetchParentRecords(namespaceID, records) : Promise.resolve(),
-      ]).then(() => {
-        this.items = records.map(r => this.wrapRecord(r))
-      })
+        return Promise.all([
+          this.fetchUsers(fields, records),
+          this.fetchRecords(namespaceID, fields, records),
+          // Only fetch parent records if parent fields feature is enabled
+          this.options.includeParentFields ? this.fetchParentRecords(namespaceID, records) : Promise.resolve(),
+        ]).then(() => {
+          this.items = records.map(r => this.wrapRecord(r))
+        })
       }).catch((e) => {
         if (!axios.isCancel(e)) {
           this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
@@ -3304,6 +3308,21 @@ return Promise.all([
 
         // Replace the whole object so Vue 2 reactivity picks up the change
         this.resolvedParentRecords = { ...resolved }
+
+        // Resolve any Record-kind / User-kind fields inside the parent records
+        // so that the field-viewer can display their labels instead of raw IDs.
+        if (parentModule) {
+          const parentRecords = Object.values(resolved)
+          // Only resolve fields the user actually selected for display
+          const selectedParentFields = this.parentFieldConfigs
+            .map(pf => parentModule.fields.find(f => f.name === pf.originalName))
+            .filter(Boolean)
+
+          await Promise.all([
+            this.fetchRecords(namespaceID, selectedParentFields, parentRecords),
+            this.fetchUsers(selectedParentFields, parentRecords),
+          ])
+        }
       } catch (e) {
         console.warn('[RecordList] Failed to fetch parent records:', e)
         // Non-fatal — rows will just show empty for parent fields
