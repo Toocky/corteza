@@ -104,8 +104,6 @@ export interface Options {
 
   // Parent fields feature
   includeParentFields: boolean;
-  parentField: string | null;
-  hideParentModuleLabel: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -176,8 +174,6 @@ const defaults: Readonly<Options> = Object.freeze({
 
   // Parent fields feature
   includeParentFields: false,
-  parentField: null,
-  hideParentModuleLabel: false,
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -205,7 +201,6 @@ export class PageBlockRecordList extends PageBlock {
       'magnifyOption',
       'recordSelectorDisplayOption',
       'addRecordDisplayOption',
-      'parentField',
     )
 
     Apply(this.options, o, Number, 'perPage', 'refreshRate')
@@ -268,7 +263,6 @@ export class PageBlockRecordList extends PageBlock {
       'openRecordInEditMode',
       'customSummaries',
       'includeParentFields',
-      'hideParentModuleLabel',
     )
 
     if (o.selectionButtons) {

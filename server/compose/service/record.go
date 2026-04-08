@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -400,22 +399,15 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
 
-		// DEBUG: Log incoming query
-		log.Printf("[DEBUG Find] Original query: %s", filter.Query)
-
 		// Check for multi-hop filters in the query
 		multiHopFilters, cleanQuery := types.ParseMultiHopFilter(filter.Query)
-		log.Printf("[DEBUG Find] Parsed multi-hop filters: %d, cleanQuery: %s", len(multiHopFilters), cleanQuery)
 
 		if len(multiHopFilters) > 0 {
 			// Resolve multi-hop filters and construct new query
 			resolvedQuery, err := svc.resolveMultiHopFilters(ctx, filter.NamespaceID, multiHopFilters)
 			if err != nil {
-				log.Printf("[DEBUG Find] Error resolving multi-hop filters: %v", err)
 				return err
 			}
-
-			log.Printf("[DEBUG Find] Resolved query: %s", resolvedQuery)
 
 			// Combine resolved query with clean query
 			if cleanQuery != "" {
@@ -423,8 +415,6 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 			} else {
 				filter.Query = resolvedQuery
 			}
-
-			log.Printf("[DEBUG Find] Final query: %s", filter.Query)
 		}
 
 		if set, f, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, filter); err != nil {
@@ -561,22 +551,15 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
 
-		// DEBUG: Log incoming query
-		log.Printf("[DEBUG FindN] Original query: %s", filter.Query)
-
 		// Check for multi-hop filters in the query (same as Find method)
 		multiHopFilters, cleanQuery := types.ParseMultiHopFilter(filter.Query)
-		log.Printf("[DEBUG FindN] Parsed multi-hop filters: %d, cleanQuery: %s", len(multiHopFilters), cleanQuery)
 
 		if len(multiHopFilters) > 0 {
 			// Resolve multi-hop filters and construct new query
 			resolvedQuery, err := svc.resolveMultiHopFilters(ctx, filter.NamespaceID, multiHopFilters)
 			if err != nil {
-				log.Printf("[DEBUG FindN] Error resolving multi-hop filters: %v", err)
 				return err
 			}
-
-			log.Printf("[DEBUG FindN] Resolved query: %s", resolvedQuery)
 
 			// Combine resolved query with clean query
 			if cleanQuery != "" {
@@ -584,8 +567,6 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 			} else {
 				filter.Query = resolvedQuery
 			}
-
-			log.Printf("[DEBUG FindN] Final query: %s", filter.Query)
 		}
 
 		if set, stats, f, err = dalutils.ComposeRecordsListN(ctx, svc.dal, m, filter); err != nil {

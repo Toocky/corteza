@@ -214,8 +214,7 @@ export default {
               ...field,
               // Override name with the namespaced version for storage/lookup
               name: uniqueName,
-              // Label shows the parent module name as context
-              label: `${this.extraModule.name}`,
+              label: field.label || field.name,
               // Flags and metadata for downstream use
               isParentField: true,
               parentModuleID: this.extraModule.moduleID,
