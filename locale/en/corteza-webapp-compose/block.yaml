@@ -325,6 +325,9 @@ record:
       performance: Using conditional fields will impact performance
   recordSelectorCanAddRecord: Can add records via record selector
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
+  parentFields:
+    enable: Include parent fields
+    field: Parent link field
 recordList:
   noModule: No module selected
   addRecord: Add
