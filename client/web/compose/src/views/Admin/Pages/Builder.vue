@@ -56,6 +56,13 @@
           />
         </b-button>
 
+        <page-translator
+          :page.sync="trPage"
+          :page-layout.sync="layout"
+          button-variant="primary"
+          style="margin-left:2px;"
+        />
+
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), boundary: 'body' }"
           variant="primary"
@@ -67,13 +74,6 @@
             :icon="['far', 'edit']"
           />
         </b-button>
-
-        <page-translator
-          :page.sync="trPage"
-          :page-layout.sync="layout"
-          button-variant="primary"
-          style="margin-left:2px;"
-        />
       </b-button-group>
     </portal>
 
@@ -91,7 +91,7 @@
       @item-updated="onBlockUpdated"
     >
       <template
-        slot-scope="{ blockIndex, block, resizing }"
+        slot-scope="{ index, block, resizing }"
       >
         <div
           :data-test-id="`block-${block.kind}`"
@@ -118,7 +118,7 @@
                 data-test-id="button-edit"
                 variant="outline-light"
                 class="border-0"
-                @click="editBlock(blockIndex)"
+                @click="editBlock(index)"
               >
                 <font-awesome-icon
                   :icon="['far', 'edit']"
@@ -129,7 +129,7 @@
                 v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone.block'), boundary: 'body' }"
                 variant="outline-light"
                 class="border-0"
-                @click="cloneBlock(blockIndex)"
+                @click="cloneBlock(index)"
               >
                 <font-awesome-icon
                   :icon="['far', 'clone']"
@@ -140,7 +140,7 @@
                 v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy.block'), boundary: 'body' }"
                 variant="outline-light"
                 class="border-0"
-                @click="copyBlock(blockIndex)"
+                @click="copyBlock(index)"
               >
                 <font-awesome-icon
                   :icon="['far', 'copy']"
@@ -154,7 +154,7 @@
               link
               size="md"
               class="ml-1"
-              @confirmed="deleteBlock(blockIndex)"
+              @confirmed="deleteBlock(index)"
             />
           </div>
 
@@ -165,7 +165,7 @@
             }"
             :page="page"
             :blocks="usedBlocks"
-            :block-index="blockIndex"
+            :block-index="index"
             :block="block"
             :module="module"
             :record="record"
@@ -527,12 +527,12 @@ export default {
 
       // If tab is not on layout include it
       this.blocks.forEach(block => {
-        if (block.kind !== 'Tabs') return
+        if (!['Tabs', 'Group'].includes(block.kind)) return
 
-        const { tabs = [] } = block.options
-        tabs.forEach(tab => {
-          if (this.blocks.some(({ blockID }) => blockID === tab.blockID)) return
-          const { blockID } = this.page.blocks.find(({ blockID }) => blockID === tab.blockID) || {}
+        const blocks = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+        blocks.forEach(b => {
+          if (this.blocks.some(({ blockID }) => blockID === b.blockID)) return
+          const { blockID } = this.page.blocks.find(({ blockID }) => blockID === b.blockID) || {}
           if (blockID) {
             tabbedIDs.add(blockID)
           }
@@ -629,6 +629,7 @@ export default {
     this.$root.$on('tab-editRequest', this.fulfilEditRequest)
     this.$root.$on('tab-createRequest', this.fulfilCreateRequest)
     this.$root.$on('tabChange', this.untabBlock)
+    this.$root.$on('groupBlockRemoved', this.showUntabbedHiddenBlocks)
   },
 
   beforeDestroy () {
@@ -679,19 +680,21 @@ export default {
 
       if (!where.length) return
 
-      where.forEach(({ block, index }) => {
-        const { tabs } = block.options
-        tabs.splice(index, 1)
+      where.forEach(({ block, index, listKey }) => {
+        block.options[listKey].splice(index, 1)
       })
     },
 
     tabLocation (tabbedBlock) {
       const where = []
-      this.blocks.forEach((block, i) => {
-        if (block.kind !== 'Tabs') return
-        const { tabs } = block.options
-        const index = tabs.findIndex(({ blockID }) => blockID === fetchID(tabbedBlock))
-        where.push({ block, index })
+      this.blocks.forEach((block) => {
+        if (block.kind === 'Tabs') {
+          const index = block.options.tabs.findIndex(({ blockID }) => blockID === fetchID(tabbedBlock))
+          if (index > -1) where.push({ block, index, listKey: 'tabs' })
+        } else if (block.kind === 'Group') {
+          const index = block.options.blocks.findIndex(({ blockID }) => blockID === fetchID(tabbedBlock))
+          if (index > -1) where.push({ block, index, listKey: 'blocks' })
+        }
       })
       return where
     },
@@ -712,8 +715,14 @@ export default {
       // If the deleted block is hidden, we need to remove it from the related tabs blocks if it is tabbed.
       if (this.blocks[index].meta.hidden) {
         this.blocks.forEach((block) => {
-          if (block.kind !== 'Tabs' || !block.options.tabs.some(({ blockID }) => blockID === fetchID(this.blocks[index]))) return
-          block.options.tabs = block.options.tabs.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
+          if (!['Tabs', 'Group'].includes(block.kind)) return
+          const blocks = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+          if (!blocks.some(({ blockID }) => blockID === fetchID(this.blocks[index]))) return
+          if (block.kind === 'Tabs') {
+            block.options.tabs = block.options.tabs.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
+          } else {
+            block.options.blocks = block.options.blocks.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
+          }
         })
       }
 
@@ -727,7 +736,7 @@ export default {
         this.unsavedBlocks.delete(block.meta.tempID)
       }
 
-      if (block.kind === 'Tabs') {
+      if (['Tabs', 'Group'].includes(block.kind)) {
         this.showUntabbedHiddenBlocks()
       }
 
@@ -745,24 +754,26 @@ export default {
       this.showUntabbedHiddenBlocks()
     },
 
-    // Changes meta.hidden property to false, for all blocks that are hidden but not in a tab
+    // Changes meta.hidden property to false, for all blocks that are hidden but not in a tab or group
     showUntabbedHiddenBlocks () {
-      const tabbedBlocks = new Set()
+      const nestedBlocks = new Set()
 
       this.blocks.forEach(block => {
-        if (block.kind !== 'Tabs') return
-
-        block.options.tabs.forEach(({ blockID }) => tabbedBlocks.add(blockID))
+        if (block.kind === 'Tabs') {
+          block.options.tabs.forEach(({ blockID }) => nestedBlocks.add(blockID))
+        } else if (block.kind === 'Group') {
+          block.options.blocks.forEach(({ blockID }) => nestedBlocks.add(blockID))
+        }
       })
 
       this.blocks.forEach((block, index) => {
-        if (!block.meta.hidden || tabbedBlocks.has(fetchID(block))) return
+        if (!block.meta.hidden || nestedBlocks.has(fetchID(block))) return
 
         this.blocks[index].meta.hidden = false
         this.calculateNewBlockPosition(this.blocks[index])
       })
 
-      tabbedBlocks.clear()
+      nestedBlocks.clear()
     },
 
     onBlockUpdated (index) {
@@ -798,17 +809,18 @@ export default {
         this.scrollToBottom()
       }
 
-      if (block.kind === 'Tabs') {
-        block.options.tabs.forEach((tab) => {
-          if (!tab.blockID) return
-          let tabbedBlock = this.blocks.find(b => fetchID(b) === tab.blockID)
+      if (['Tabs', 'Group'].includes(block.kind)) {
+        const blocks = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+        blocks.forEach((b) => {
+          if (!b.blockID) return
+          let nestedBlock = this.blocks.find(nb => fetchID(nb) === b.blockID)
 
-          if (!tabbedBlock) {
-            tabbedBlock = this.page.blocks.find(({ blockID }) => blockID === tab.blockID)
-            this.blocks.push(tabbedBlock)
+          if (!nestedBlock) {
+            nestedBlock = this.page.blocks.find(({ blockID }) => blockID === b.blockID)
+            this.blocks.push(nestedBlock)
           }
 
-          tabbedBlock.meta.hidden = true
+          nestedBlock.meta.hidden = true
         })
 
         this.showUntabbedHiddenBlocks()
@@ -820,7 +832,24 @@ export default {
     },
 
     cloneBlock (index) {
-      this.appendBlock(this.blocks[index].clone(), this.$t('notification:page.cloneSuccess'))
+      const block = this.blocks[index]
+
+      if (block.kind === 'Group') {
+        const clonedGroup = block.clone()
+        clonedGroup.options.blocks = block.options.blocks.map(({ blockID, xywh }) => {
+          const childIndex = this.blocks.findIndex(b => fetchID(b) === blockID)
+          if (childIndex === -1) return { blockID, xywh: [...xywh] }
+
+          const clonedChild = this.blocks[childIndex].clone()
+          clonedChild.meta.hidden = true
+          this.blocks.push(clonedChild)
+          this.unsavedBlocks.add(fetchID(clonedChild))
+          return { blockID: fetchID(clonedChild), xywh: [...xywh] }
+        })
+        this.appendBlock(clonedGroup, this.$t('notification:page.cloneSuccess'))
+      } else {
+        this.appendBlock(block.clone(), this.$t('notification:page.cloneSuccess'))
+      }
     },
 
     cloneTabbedBlock ({ tabbedBlockIndex, tabBlockIndex, title }) {
@@ -912,26 +941,26 @@ export default {
       }
 
       // Inline record lists
-      const hasInvalidRecordList = this.usedBlocks.some(b => {
+      this.usedBlocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
           const recordListModule = this.getModuleByID(b.options.moduleID)
-          if (!recordListModule) return false
           const req = new Set(recordListModule.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
+
+          // If refField is configured, exclude it from required fields check
+          if (b.options.refField) {
+            req.delete(b.options.refField)
+          }
 
           // Check if all required fields are there
           for (const f of b.options.editFields) {
             req.delete(f.name)
           }
 
-          return req.size > 0
+          if (req.size) {
+            this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
+          }
         }
-        return false
       })
-
-      if (hasInvalidRecordList) {
-        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
-        return
-      }
 
       this.processing = true
 
@@ -1080,20 +1109,28 @@ export default {
     },
 
     async copyBlock (index) {
-      const block = JSON.stringify(this.blocks[index].clone())
+      const block = this.blocks[index].clone()
+      let payload
 
-      // Change tabbed blockID to use tempID's since they are persisted on save
-      if (block.kind === 'Tabs') {
-        const { tabs = [] } = block.options
+      if (['Tabs', 'Group'].includes(block.kind)) {
+        const childRefs = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+        const children = childRefs.map(ref => {
+          const child = this.blocks.find(b => fetchID(b) === ref.blockID)
+          return child ? child.clone() : null
+        }).filter(Boolean)
 
-        block.options.tabs = tabs.map(b => {
-          const { tempID } = (this.blocks.find(({ blockID }) => blockID === b.blockID) || {}).meta || {}
-          b.blockID = tempID
-          return b
+        // Map blockIDs to tempIDs for portability across pages
+        childRefs.forEach(ref => {
+          const child = this.blocks.find(b => fetchID(b) === ref.blockID)
+          if (child) ref.blockID = child.meta.tempID || ref.blockID
         })
+
+        payload = JSON.stringify({ container: block, children })
+      } else {
+        payload = JSON.stringify(block)
       }
 
-      navigator.clipboard.writeText(block).then(() => {
+      navigator.clipboard.writeText(payload).then(() => {
         this.toastSuccess(this.$t('notification:page.copySuccess'))
         this.$refs.pageBuilder.focus()
       },
@@ -1109,11 +1146,34 @@ export default {
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
         try {
-          const block = compose.PageBlockMaker(JSON.parse(paste))
-          const valid = this.isValid(block)
+          const parsed = JSON.parse(paste)
 
-          if (valid) {
-            this.appendBlock(block, this.$t('notification:page.pasteSuccess'))
+          if (parsed.container && parsed.children) {
+            // Bundle paste for container blocks (Group, Tabs)
+            const container = compose.PageBlockMaker(parsed.container)
+            const childRefs = container.kind === 'Tabs' ? container.options.tabs : container.options.blocks
+
+            parsed.children.forEach((childData, i) => {
+              const child = compose.PageBlockMaker(childData)
+              child.setTempID()
+              child.meta.hidden = true
+              this.blocks.push(child)
+              this.unsavedBlocks.add(fetchID(child))
+              // Remap container reference to the new child
+              if (childRefs[i]) childRefs[i].blockID = fetchID(child)
+            })
+
+            const valid = this.isValid(container)
+            if (valid) {
+              this.appendBlock(container, this.$t('notification:page.pasteSuccess'))
+            }
+          } else {
+            const block = compose.PageBlockMaker(parsed)
+            const valid = this.isValid(block)
+
+            if (valid) {
+              this.appendBlock(block, this.$t('notification:page.pasteSuccess'))
+            }
           }
         } catch (error) {
           this.toastWarning(this.$t('notification:page.invalidBlock'))
@@ -1232,6 +1292,7 @@ export default {
       this.$root.$off('tab-editRequest', this.fulfilEditRequest)
       this.$root.$off('tab-createRequest', this.fulfilCreateRequest)
       this.$root.$off('tabChange', this.untabBlock)
+      this.$root.$off('groupBlockRemoved', this.showUntabbedHiddenBlocks)
     },
   },
 }
