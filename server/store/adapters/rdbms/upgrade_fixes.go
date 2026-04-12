@@ -57,6 +57,7 @@ var (
 		fix_2024_9_7_migrateLabelsValueToJsonb,
 		fix_2024_09_07_migrateNamespacePageBlocks,
 		fix_2024_09_07_addNamespaceGlobalFields,
+		fix_2024_09_10_addHashAndModuleToComposeAttachment,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
@@ -1314,6 +1315,52 @@ func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err 
 	return nil
 
 }
+func fix_2024_09_10_addHashAndModuleToComposeAttachment(ctx context.Context, s *Store) error {
+	const (
+		tableName = "compose_attachment"
+		indexName = "compose_attachment_idxHashModule"
+	)
+
+	if err := addColumn(ctx, s, tableName, &dal.Attribute{
+		Ident: "Hash",
+		Type:  &dal.TypeText{Nullable: true},
+		Store: &dal.CodecAlias{Ident: "hash"},
+	}); err != nil {
+		return err
+	}
+	if err := addColumn(ctx, s, tableName, &dal.Attribute{
+		Ident: "ModuleID",
+		Type:  &dal.TypeID{},
+		Store: &dal.CodecAlias{Ident: "rel_module"},
+	}); err != nil {
+		return err
+	}
+
+	// Create composite index on (hash, rel_module) for fast duplicate lookups.
+	// MySQL and SQL Server require an explicit existence check before CREATE INDEX.
+	driverName := s.DB.DriverName()
+	if strings.HasPrefix(driverName, "mysql") || strings.HasPrefix(driverName, "sqlserver") {
+		existing, err := s.DataDefiner.IndexLookup(ctx, indexName, tableName)
+		if err != nil {
+			return err
+		}
+		if existing != nil {
+			return nil
+		}
+	}
+
+	hashModuleIdx := ddl.Index{
+		TableIdent: tableName,
+		Ident:      indexName,
+		Type:       "BTREE",
+		Fields: []*ddl.IndexField{
+			{Column: "hash"},
+			{Column: "rel_module"},
+		},
+	}
+	return s.DataDefiner.IndexCreate(ctx, tableName, &hashModuleIdx)
+}
+
 
 func fix_2024_09_07_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
