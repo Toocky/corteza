@@ -73,6 +73,14 @@ endpoints:
         name: meta
         required: true
         title: Meta data
+      - type: sqlxTypes.JSONText
+        name: blocks
+        required: false
+        title: Blocks
+      - type: sqlxTypes.JSONText
+        name: fields
+        required: false
+        title: Fields
   - name: read
     method: GET
     title: Read namespace
@@ -110,6 +118,14 @@ endpoints:
         name: meta
         required: true
         title: Meta data
+      - type: sqlxTypes.JSONText
+        name: blocks
+        required: false
+        title: Blocks
+      - type: sqlxTypes.JSONText
+        name: fields
+        required: false
+        title: Fields
       - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels

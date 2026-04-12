@@ -18,6 +18,8 @@ import CollapsibleRecordListBase from './CollapsibleRecordListBase'
 import CollapsibleRecordListConfigurator from './CollapsibleRecordListConfigurator'
 import FileBase from './FileBase'
 import FileConfigurator from './FileConfigurator'
+import GroupBase from './GroupBase'
+import GroupConfigurator from './GroupConfigurator'
 import GeometryBase from './GeometryBase'
 import GeometryConfigurator from './GeometryConfigurator/index'
 import IFrameBase from './IFrameBase'
@@ -59,6 +61,8 @@ const Registry = {
   ContentConfigurator,
   FileBase,
   FileConfigurator,
+  GroupBase,
+  GroupConfigurator,
   IFrameBase,
   IFrameConfigurator,
   RecordBase,

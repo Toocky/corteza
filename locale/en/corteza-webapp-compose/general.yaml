@@ -158,6 +158,8 @@ fieldKinds:
     label: Email input
   File:
     label: File upload
+  Link:
+    label: Link input
   Number:
     label: Number input
   Record:

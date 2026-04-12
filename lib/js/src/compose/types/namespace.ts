@@ -1,5 +1,6 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
+import { PageBlock, PageBlockMaker } from './page-block'
 
 interface MetaAdminRecordList {
   columns: string[];
@@ -20,8 +21,22 @@ interface Meta {
   logoEnabled: boolean;
 }
 
+export interface GlobalField {
+  fieldID?: string;
+  kind: string;
+  name: string;
+  options?: Record<string, unknown>;
+  isRequired?: boolean;
+  isMulti?: boolean;
+  defaultValue?: Array<{ name?: string; value: string }>;
+  expressions?: Record<string, unknown>;
+  config?: Record<string, unknown>;
+}
+
 interface PartialNamespace extends Partial<Omit<Namespace, 'meta' | 'createdAt' | 'updatedAt' | 'deletedAt'>> {
   meta?: Partial<Meta>;
+  blocks?: Array<PageBlock>,
+  fields?: Array<GlobalField>,
   createdAt?: string|number|Date;
   updatedAt?: string|number|Date;
   deletedAt?: string|number|Date;
@@ -37,6 +52,9 @@ export class Namespace {
   public labels: object = {}
 
   public meta: object = {}
+
+  public blocks: Array<PageBlock> = []
+  public fields: Array<GlobalField> = []
 
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
@@ -76,6 +94,14 @@ export class Namespace {
 
     if (IsOf(n, 'labels')) {
       this.labels = { ...n.labels }
+    }
+
+    if (n.blocks) {
+      this.blocks = n.blocks ? n.blocks.filter(b => b.kind).map(block => PageBlockMaker(block)) : []
+    }
+
+    if (n.fields) {
+      this.fields = n.fields ? n.fields.filter(f => f.kind) : []
     }
 
     Apply(this, n, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
