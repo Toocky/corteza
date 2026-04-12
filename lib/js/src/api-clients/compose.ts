@@ -144,6 +144,7 @@ export default class Compose {
       slug,
       enabled,
       meta,
+      fields,
     } = (a as KV) || {}
     if (!name) {
       throw Error('field name is empty')
@@ -162,6 +163,7 @@ export default class Compose {
       slug,
       enabled,
       meta,
+      fields,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -229,6 +231,7 @@ export default class Compose {
       enabled,
       meta,
       blocks,
+      fields,
       labels,
       updatedAt,
     } = (a as KV) || {}
@@ -254,6 +257,7 @@ export default class Compose {
       enabled,
       meta,
       blocks,
+      fields,
       labels,
       updatedAt,
     }

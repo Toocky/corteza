@@ -47,6 +47,16 @@ export default function (ComposeAPI) {
           return block
         })
       },
+      
+      getGlobalFieldsByKind (state, { getByID }) {
+        return (ID, kind) => {
+          const ns = getByID(ID)
+          if (!ns || !ns.fields) {
+            return []
+          }
+          return ns.fields.filter(f => f.kind === kind)
+        }
+      },
     },
 
     actions: {

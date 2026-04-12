@@ -39,6 +39,18 @@ namespace: {
 					}
 				}
 			}
+			fields: {
+				goType: "types.GlobalFields"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
+			}
 			name: {
 				sortable: true
 				dal: {}

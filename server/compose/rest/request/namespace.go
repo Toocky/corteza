@@ -11,17 +11,18 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"strings"
-	"time"
 )
 
 // dummy vars to prevent
@@ -105,6 +106,11 @@ type (
 		//
 		// Blocks
 		Blocks sqlxTypes.JSONText
+    
+		// Fields POST parameter
+		//
+		// Fields
+		Fields sqlxTypes.JSONText
 	}
 
 	NamespaceRead struct {
@@ -144,6 +150,11 @@ type (
 		//
 		// Blocks
 		Blocks sqlxTypes.JSONText
+    
+		// Fields POST parameter
+		//
+		// Fields
+		Fields sqlxTypes.JSONText
 
 		// Labels POST parameter
 		//
@@ -391,6 +402,7 @@ func (r NamespaceCreate) Auditable() map[string]interface{} {
 		"enabled": r.Enabled,
 		"meta":    r.Meta,
 		"blocks":  r.Blocks,
+		"fields":  r.Fields,
 	}
 }
 
@@ -422,6 +434,10 @@ func (r NamespaceCreate) GetMeta() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceCreate) GetBlocks() sqlxTypes.JSONText {
 	return r.Blocks
+}
+
+func (r NamespaceCreate) GetFields() sqlxTypes.JSONText {
+	return r.Fields
 }
 
 // Fill processes request and fills internal variables
@@ -491,6 +507,13 @@ func (r *NamespaceCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+      
+			if val, ok := req.MultipartForm.Value["fields"]; ok && len(val) > 0 {
+				r.Fields, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -543,6 +566,13 @@ func (r *NamespaceCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["blocks"]; ok && len(val) > 0 {
 			r.Blocks, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+    
+		if val, ok := req.Form["fields"]; ok && len(val) > 0 {
+			r.Fields, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}
@@ -601,6 +631,7 @@ func (r NamespaceUpdate) Auditable() map[string]interface{} {
 		"enabled":     r.Enabled,
 		"meta":        r.Meta,
 		"blocks":      r.Blocks,
+		"fields":      r.Fields,
 		"labels":      r.Labels,
 		"updatedAt":   r.UpdatedAt,
 	}
@@ -639,6 +670,11 @@ func (r NamespaceUpdate) GetBlocks() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpdate) GetFields() sqlxTypes.JSONText {
+	return r.Fields
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -697,6 +733,13 @@ func (r *NamespaceUpdate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["blocks"]; ok && len(val) > 0 {
 				r.Blocks, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["fields"]; ok && len(val) > 0 {
+				r.Fields, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
 					return err
 				}
@@ -772,6 +815,13 @@ func (r *NamespaceUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["fields"]; ok && len(val) > 0 {
+			r.Fields, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}
