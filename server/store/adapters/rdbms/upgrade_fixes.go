@@ -55,6 +55,8 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
 		fix_2024_9_7_migrateLabelsValueToJsonb,
+		fix_2024_09_07_migrateNamespacePageBlocks,
+		fix_2024_09_07_addNamespaceGlobalFields,
 		fix_2024_09_10_addHashAndModuleToComposeAttachment,
 	}
 
@@ -1357,6 +1359,21 @@ func fix_2024_09_10_addHashAndModuleToComposeAttachment(ctx context.Context, s *
 		},
 	}
 	return s.DataDefiner.IndexCreate(ctx, tableName, &hashModuleIdx)
+}
+
+
+func fix_2024_09_07_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_namespace",
+		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{HasDefault: true, DefaultValue: "[]"}},
+	)
+}
+
+func fix_2024_09_07_addNamespaceGlobalFields(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_namespace",
+		&dal.Attribute{Ident: "fields", Type: &dal.TypeJSON{HasDefault: true, DefaultValue: "[]"}},
+	)
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

@@ -281,6 +281,8 @@ type (
 		Slug      string                    `db:"slug"`
 		Enabled   bool                      `db:"enabled"`
 		Meta      composeType.NamespaceMeta `db:"meta"`
+		Blocks    composeType.GlobalBlocks  `db:"blocks"`
+		Fields    composeType.GlobalFields  `db:"fields"`
 		Name      string                    `db:"name"`
 		CreatedAt time.Time                 `db:"created_at"`
 		UpdatedAt *time.Time                `db:"updated_at"`
@@ -1631,6 +1633,8 @@ func (aux *auxComposeNamespace) encode(res *composeType.Namespace) (_ error) {
 	aux.Slug = res.Slug
 	aux.Enabled = res.Enabled
 	aux.Meta = res.Meta
+	aux.Blocks = res.Blocks
+	aux.Fields = res.Fields
 	aux.Name = res.Name
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
@@ -1647,6 +1651,8 @@ func (aux auxComposeNamespace) decode() (res *composeType.Namespace, _ error) {
 	res.Slug = aux.Slug
 	res.Enabled = aux.Enabled
 	res.Meta = aux.Meta
+	res.Blocks = aux.Blocks
+	res.Fields = aux.Fields
 	res.Name = aux.Name
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
@@ -1663,6 +1669,8 @@ func (aux *auxComposeNamespace) scan(row scanner) error {
 		&aux.Slug,
 		&aux.Enabled,
 		&aux.Meta,
+		&aux.Blocks,
+		&aux.Fields,
 		&aux.Name,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
