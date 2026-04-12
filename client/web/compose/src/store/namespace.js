@@ -38,6 +38,16 @@ export default function (ComposeAPI) {
         return state.set
       },
 
+      getNamespaceBlocksByID (state, { getByID }) {
+        return (ID) => ((getByID(ID) || {}).blocks || []).map((b) => {
+          const ns = getByID(ID)
+          const block = compose.PageBlockMaker(b)
+          block.blockID = `${ns.namespaceID}-${b.blockID}`
+
+          return block
+        })
+      },
+      
       getGlobalFieldsByKind (state, { getByID }) {
         return (ID, kind) => {
           const ns = getByID(ID)

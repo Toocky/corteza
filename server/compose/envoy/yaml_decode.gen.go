@@ -1306,6 +1306,7 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 
 		switch strings.ToLower(k.Value) {
 
+		case "blocks":
 		case "fields":
 
 			// Handle custom node decoder

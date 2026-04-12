@@ -55,6 +55,7 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
 		fix_2024_9_7_migrateLabelsValueToJsonb,
+		fix_2024_09_07_migrateNamespacePageBlocks,
 		fix_2024_09_07_addNamespaceGlobalFields,
 	}
 
@@ -1312,6 +1313,13 @@ func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err 
 	}
 	return nil
 
+}
+
+func fix_2024_09_07_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_namespace",
+		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{HasDefault: true, DefaultValue: "[]"}},
+	)
 }
 
 func fix_2024_09_07_addNamespaceGlobalFields(ctx context.Context, s *Store) (err error) {

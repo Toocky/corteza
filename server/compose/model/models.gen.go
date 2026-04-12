@@ -523,6 +523,15 @@ var Namespace = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Blocks",
+			Type: &dal.TypeJSON{
+				HasDefault:  true,
+				DefaultValue: "[]",
+			},
+			Store: &dal.CodecAlias{Ident: "blocks"},
+		},
+
+		&dal.Attribute{
 			Ident: "Fields",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",

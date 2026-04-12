@@ -140,6 +140,14 @@ func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (i
 		return nil, err
 	}
 
+	if len(r.Blocks) > 2 {
+		// Process blocks if they were included in the request
+		// if not, do not assume that blocks were removed!
+		if err = r.Blocks.Unmarshal(&ns.Blocks); err != nil {
+			return nil, err
+		}
+	}
+
 	if len(r.Fields) > 2 {
 		if err = r.Fields.Unmarshal(&ns.Fields); err != nil {
 			return nil, err
@@ -178,6 +186,14 @@ func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (i
 
 	if err = r.Meta.Unmarshal(&ns.Meta); err != nil {
 		return nil, err
+	}
+
+	if len(r.Blocks) > 2 {
+		// Process blocks if they were included in the request
+		// if not, do not assume that blocks were removed!
+		if err = r.Blocks.Unmarshal(&ns.Blocks); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(r.Fields) > 2 {

@@ -74,6 +74,10 @@ endpoints:
         required: true
         title: Meta data
       - type: sqlxTypes.JSONText
+        name: blocks
+        required: false
+        title: Blocks
+      - type: sqlxTypes.JSONText
         name: fields
         required: false
         title: Fields
@@ -114,6 +118,10 @@ endpoints:
         name: meta
         required: true
         title: Meta data
+      - type: sqlxTypes.JSONText
+        name: blocks
+        required: false
+        title: Blocks
       - type: sqlxTypes.JSONText
         name: fields
         required: false

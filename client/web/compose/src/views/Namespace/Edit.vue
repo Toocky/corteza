@@ -588,9 +588,7 @@ export default {
       }
 
       const payload = {
-        name,
-        slug,
-        enabled,
+        ...this.namespace,
         meta,
         fields,
         labels,
