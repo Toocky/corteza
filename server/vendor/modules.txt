@@ -29,6 +29,10 @@ github.com/PaesslerAG/jsonpath
 ## explicit
 github.com/SentimensRG/ctx
 github.com/SentimensRG/ctx/sigctx
+# github.com/ZeroHawkeye/wordZero v1.6.0
+## explicit; go 1.22
+github.com/ZeroHawkeye/wordZero/pkg/document
+github.com/ZeroHawkeye/wordZero/pkg/style
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit; go 1.13
 github.com/asaskevich/govalidator
