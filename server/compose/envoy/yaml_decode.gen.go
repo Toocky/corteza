@@ -1306,6 +1306,26 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 
 		switch strings.ToLower(k.Value) {
 
+		case "blocks":
+		case "fields":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalNamespaceFieldsNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
 		case "id":
 			// Handle identifiers
 			err = y7s.DecodeScalar(n, "id", &auxNodeValue)

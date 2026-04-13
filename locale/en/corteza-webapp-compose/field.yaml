@@ -67,6 +67,18 @@ kind:
       px: px
       clickToView: Click to view file
       description: 'Add unit after value to set it. For example: 50px or 50%'
+      uniqueness:
+        section: File uniqueness
+        enforce: Enforce file uniqueness
+        conflictActionLabel: Action on duplicate
+        targetModuleLabel: Check uniqueness against
+        targetModuleDescription: Leave empty to check within this module
+        targetModulePlaceholder: Select a module...
+        actions:
+          modal: Open record in modal
+          newTab: Open record in new tab
+          sameTab: Open record in same tab
+          alert: Show alert with clickable link
   number:
     exampleFormat: Format
     exampleInput: Input
@@ -175,6 +187,35 @@ kind:
     trimHash: Trim '#' from the Url
     trimQuestionMark: Trim '?' from the Url
     trimToDomain: Trim Url down to domain only
+  link:
+    example: 'Example: user@example.com, https://example.com, +1234567890'
+    dynamicMode: Dynamic detection
+    dynamicModeTooltip: Dynamic mode detects Email, URL, or Phone number
+    protocol: Protocol
+    protocolOptions:
+      none: None
+      mailto: 'Email'
+      tel: 'Phone'
+      url: 'URL'
+      skype: Skype
+      msteams: Microsoft Teams
+      slack: Slack
+      sms: SMS
+      facetime: Facetime
+      zoommtg: Zoom
+      whatsapp: WhatsApp
+      signal: Signal
+      fb: Facebook
+      fbmessenger: Facebook Messenger
+      instagram: Instagram
+      twitter: Twitter/X
+      youtube: YouTube
+      spotify: Spotify
+      tiktok: TikTok
+      discord: Discord
+      custom: Custom
+    customProtocol: Custom protocol (e.g., skype:)
+    preventToLink: Don't turn field into a link
   user:
     label: User
     na: N/A
@@ -292,4 +333,12 @@ constraints:
   totalFieldConstraintCount: The field is used in {{total}} other unique value constraint. See "unique values" tab on module editor.
   tooltip:
     performance: Using unique value constraints will impact performance
+globalField:
+  selector:
+    label: Connect global field
+    placeholder: Select global field
+    load: Link field
+  makeGlobal: Global Field
+  conflictError: Global field name conflict
+  linked: Linked
 

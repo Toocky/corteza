@@ -102,6 +102,9 @@ label:
   urlPlaceholder: https://example.tld
   validation: Validation
   view: View
+  open: Open
+  expand: Expand
+  collapse: Collapse
   yes: Yes
   chart:
     single: Chart
@@ -155,6 +158,8 @@ fieldKinds:
     label: Email input
   File:
     label: File upload
+  Link:
+    label: Link input
   Number:
     label: Number input
   Record:

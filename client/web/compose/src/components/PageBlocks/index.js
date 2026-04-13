@@ -11,10 +11,17 @@ import CommentBase from './Comment/Base'
 import CommentConfigurator from './Comment/Configurator'
 import ContentBase from './ContentBase'
 import ContentConfigurator from './ContentConfigurator'
+import CollapsibleRecordBase from './CollapsibleRecordBase'
+import CollapsibleRecordConfigurator from './CollapsibleRecordConfigurator'
+import CollapsibleRecordEditor from './CollapsibleRecordEditor'
+import CollapsibleRecordListBase from './CollapsibleRecordListBase'
+import CollapsibleRecordListConfigurator from './CollapsibleRecordListConfigurator'
 import FileBase from './FileBase'
 import FileConfigurator from './FileConfigurator'
 import FileUploadBase from './FileUploadBase'
 import FileUploadConfigurator from './FileUploadConfigurator'
+import GroupBase from './GroupBase'
+import GroupConfigurator from './GroupConfigurator'
 import GeometryBase from './GeometryBase'
 import GeometryConfigurator from './GeometryConfigurator/index'
 import IFrameBase from './IFrameBase'
@@ -58,6 +65,8 @@ const Registry = {
   FileConfigurator,
   FileUploadBase,
   FileUploadConfigurator,
+  GroupBase,
+  GroupConfigurator,
   IFrameBase,
   IFrameConfigurator,
   RecordBase,
@@ -77,6 +86,11 @@ const Registry = {
   MetricConfigurator,
   CommentBase,
   CommentConfigurator,
+  CollapsibleRecordBase,
+  CollapsibleRecordConfigurator,
+  CollapsibleRecordEditor,
+  CollapsibleRecordListBase,
+  CollapsibleRecordListConfigurator,
   ProgressBase,
   ProgressConfigurator,
   GeometryBase,

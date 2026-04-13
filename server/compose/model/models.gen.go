@@ -77,6 +77,18 @@ var Attachment = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Hash",
+			Type:  &dal.TypeText{Nullable: true},
+			Store: &dal.CodecAlias{Ident: "hash"},
+		},
+
+		&dal.Attribute{
+			Ident: "ModuleID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "rel_module"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
@@ -105,6 +117,20 @@ var Attachment = &dal.Model{
 			Fields: []*dal.IndexField{
 				{
 					AttributeIdent: "NamespaceID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_attachment_hash_module",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Hash",
+				},
+				{
+					AttributeIdent: "ModuleID",
 				},
 			},
 		},
@@ -520,6 +546,23 @@ var Namespace = &dal.Model{
 				DefaultValue: "{}",
 			},
 			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
+			Ident: "Blocks",
+			Type: &dal.TypeJSON{
+				HasDefault:  true,
+				DefaultValue: "[]",
+			},
+			Store: &dal.CodecAlias{Ident: "blocks"},
+		},
+
+		&dal.Attribute{
+			Ident: "Fields",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "fields"},
 		},
 
 		&dal.Attribute{

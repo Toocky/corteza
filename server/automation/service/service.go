@@ -130,6 +130,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.JwtHandler(Registry())
 	automation.ApigwBodyHandler(Registry())
 	automation.HtmlHandler(Registry())
+	automation.JsonParserHandler(Registry())
 	return
 }
 
