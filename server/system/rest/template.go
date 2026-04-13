@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/renderer"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -21,6 +23,7 @@ type (
 	Template struct {
 		renderer service.TemplateService
 		ac       templateAccessController
+		att      service.AttachmentService
 	}
 
 	templateSetPayload struct {
@@ -57,6 +60,7 @@ func (Template) New() *Template {
 	return &Template{
 		renderer: service.DefaultRenderer,
 		ac:       service.DefaultAccessControl,
+		att:      service.DefaultAttachment,
 	}
 }
 
@@ -96,13 +100,14 @@ func (ctrl *Template) Create(ctx context.Context, r *request.TemplateCreate) (in
 	var (
 		err error
 		app = &types.Template{
-			Handle:   r.Handle,
-			Language: r.Language,
-			Type:     types.DocumentType(r.Type),
-			Partial:  r.Partial,
-			Meta:     r.Meta,
-			Template: r.Template,
-			OwnerID:  r.OwnerID,
+			Handle:       r.Handle,
+			Language:     r.Language,
+			Type:         types.DocumentType(r.Type),
+			Partial:      r.Partial,
+			Meta:         r.Meta,
+			Template:     r.Template,
+			SourceFileID: r.SourceFileID,
+			OwnerID:      r.OwnerID,
 		}
 	)
 
@@ -114,15 +119,16 @@ func (ctrl *Template) Update(ctx context.Context, r *request.TemplateUpdate) (in
 	var (
 		err error
 		app = &types.Template{
-			ID:        r.TemplateID,
-			Handle:    r.Handle,
-			Language:  r.Language,
-			Type:      types.DocumentType(r.Type),
-			Partial:   r.Partial,
-			Meta:      r.Meta,
-			Template:  r.Template,
-			OwnerID:   r.OwnerID,
-			UpdatedAt: r.UpdatedAt,
+			ID:           r.TemplateID,
+			Handle:       r.Handle,
+			Language:     r.Language,
+			Type:         types.DocumentType(r.Type),
+			Partial:      r.Partial,
+			Meta:         r.Meta,
+			Template:     r.Template,
+			SourceFileID: r.SourceFileID,
+			OwnerID:      r.OwnerID,
+			UpdatedAt:    r.UpdatedAt,
 		}
 	)
 
@@ -220,7 +226,11 @@ func (ctrl *Template) serve(doc io.ReadSeeker, ct string, r *request.TemplateRen
 
 		name := url.QueryEscape(strings.TrimSpace(r.Filename) + "." + strings.TrimSpace(r.Ext))
 		w.Header().Add("Content-Disposition", "attachment; filename="+name)
-		w.Header().Add("Content-Type", ct+"; charset=utf-8")
+		if strings.HasPrefix(ct, "application/") {
+			w.Header().Add("Content-Type", ct)
+		} else {
+			w.Header().Add("Content-Type", ct+"; charset=utf-8")
+		}
 
 		http.ServeContent(w, req, name, time.Now(), doc)
 	}, nil
@@ -234,7 +244,70 @@ func (ctrl *Template) getDestinationType(ext string) string {
 		return "text/html"
 	case "pdf":
 		return "application/pdf"
+	case "docx":
+		return string(types.DocumentTypeDocx)
 	}
 
 	return "text/plain"
+}
+
+func (ctrl *Template) UploadSourceFile(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(32 << 20) // 32MB max
+	if err != nil {
+		api.Send(w, r, err)
+		return
+	}
+
+	templateID := payload.ParseUint64(r.FormValue("templateID"))
+	if templateID == 0 {
+		api.Send(w, r, fmt.Errorf("templateID is required"))
+		return
+	}
+
+	file, header, err := r.FormFile("upload")
+	if err != nil {
+		api.Send(w, r, err)
+		return
+	}
+	defer file.Close()
+
+	// Validate file extension
+	ext := strings.ToLower(header.Filename)
+	if !strings.HasSuffix(ext, ".docx") {
+		api.Send(w, r, fmt.Errorf("only .docx files are accepted"))
+		return
+	}
+
+	rs, ok := file.(io.ReadSeeker)
+	if !ok {
+		api.Send(w, r, fmt.Errorf("uploaded file does not support seeking"))
+		return
+	}
+
+	att, err := ctrl.att.CreateTemplateAttachment(
+		r.Context(),
+		header.Filename,
+		header.Size,
+		rs,
+		nil,
+	)
+	if err != nil {
+		api.Send(w, r, err)
+		return
+	}
+
+	// Link the attachment to the template
+	tpl, err := ctrl.renderer.FindByID(r.Context(), templateID)
+	if err != nil {
+		api.Send(w, r, err)
+		return
+	}
+
+	tpl.SourceFileID = att.ID
+	if _, err = ctrl.renderer.Update(r.Context(), tpl); err != nil {
+		api.Send(w, r, err)
+		return
+	}
+
+	api.Send(w, r, att)
 }

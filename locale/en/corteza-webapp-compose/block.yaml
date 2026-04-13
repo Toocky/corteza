@@ -1083,6 +1083,37 @@ tabs:
     editDisabled: Editing tabbed blocks is disabled until you save this block
     addBlock: Add new block
 
+fileUpload:
+  label: File Upload
+  notConfigured: File upload block is not configured. Please select a target module and file field.
+  uploading: Uploading...
+  defaultButtonText: Upload File
+  defaultSuccessMessage: File uploaded successfully
+  uploadFailed: Upload failed
+  partialFailure: "{{completed}} of {{total}} files uploaded before error."
+  errorTitle: Error
+  config:
+    target: Target Configuration
+    modulePlaceholder: Select a module
+    fileField: File field
+    fileFieldPlaceholder: Select a file field
+    buttonConfig: Button Configuration
+    buttonText: Button text
+    buttonTextPlaceholder: Upload File
+    buttonVariant: Button style
+    multiFileHandling: Multiple File Handling
+    newRecordPerFile: Create a new record for each file
+    multipleFilesPerRecord: Attach multiple files to a single record
+    multipleFilesDisabledHint: Only available when the file field allows multiple values
+    extraFields: Additional Fields
+    extraFieldsDescription: Select fields from the target module to display below the upload button
+    behavior: Behavior
+    clearOnSubmit: Clear fields after successful upload
+    successMessage: Success message
+    successMessagePlaceholder: File uploaded successfully
+    acceptedMimeTypes: Accepted file types
+    acceptedMimeTypesPlaceholder: "*/*"
+    
 group:
   label: Group
   noBlocks: No blocks configured

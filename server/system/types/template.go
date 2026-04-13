@@ -32,6 +32,8 @@ type (
 
 		Template string `json:"template"`
 
+		SourceFileID uint64 `json:"sourceFileID,string"`
+
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		OwnerID    uint64     `json:"ownerID,string"`
@@ -75,6 +77,7 @@ const (
 	DocumentTypePlain DocumentType = "text/plain"
 	DocumentTypeHTML  DocumentType = "text/html"
 	DocumentTypePDF   DocumentType = "application/pdf"
+	DocumentTypeDocx  DocumentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 )
 
 func (t *TemplateMeta) Scan(src any) error          { return sql.ParseJSON(src, t) }

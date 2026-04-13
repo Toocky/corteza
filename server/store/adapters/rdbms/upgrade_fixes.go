@@ -58,6 +58,7 @@ var (
 		fix_2024_09_07_migrateNamespacePageBlocks,
 		fix_2024_09_07_addNamespaceGlobalFields,
 		fix_2024_09_10_addHashAndModuleToComposeAttachment,
+		fix_2024_09_10_addSourceFileIDToTemplates,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
@@ -1392,4 +1393,11 @@ func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (
 	}
 
 	return
+}
+
+func fix_2024_09_10_addSourceFileIDToTemplates(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s,
+		"templates",
+		&dal.Attribute{Ident: "SourceFileID", Type: &dal.TypeID{HasDefault: true, DefaultValue: 0}, Store: &dal.CodecAlias{Ident: "source_file_id"}},
+	)
 }

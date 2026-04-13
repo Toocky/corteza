@@ -89,6 +89,95 @@ export default {
   },
 
   computed: {
+    isDocx () {
+      return this.template.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    },
+
+    cvSampleData () {
+      return {
+        variables: {
+          contact: {
+            details: {
+              name: 'Eric Banner',
+              gender: 'Male',
+              nationality: 'Australian',
+              marital_status: 'Married',
+              current_location: 'Sydney, NSW',
+              date_of_birth: 'April 15, 1968',
+            },
+            education: [
+              {
+                name: 'Bachelor of Science',
+                institution: 'University of Sydney',
+                started: 'February 1986',
+                ended: 'November 1989',
+                gpa: '3.8',
+                major: 'Computer Science',
+              },
+              {
+                name: 'Master of Business Administration',
+                institution: 'UNSW Sydney',
+                started: 'March 1992',
+                ended: 'December 1993',
+                gpa: '3.5',
+                major: 'Technology Management',
+              },
+            ],
+            languages: [
+              { language: 'English', proficiency: 'Native' },
+              { language: 'Japanese', proficiency: 'Conversational' },
+            ],
+            current_company: 'Meridian Technologies',
+            current_position: 'Director of Engineering',
+            availability: '4 weeks notice',
+            current_salary: '185,000 AUD',
+            expected_salary: '210,000 AUD',
+            work_experience: [
+              {
+                company: 'DataFlow Systems',
+                start_date: 'January 1990',
+                end_date: 'August 1995',
+                title: 'Software Developer',
+                experience_block: 'Developed backend services for financial data processing. Built real-time market data feeds and automated reporting systems. Mentored junior developers and established code review practices.',
+              },
+              {
+                company: 'Pacific Digital',
+                start_date: 'September 1995',
+                end_date: 'March 2005',
+                title: 'Senior Software Architect',
+                experience_block: 'Led architecture of the company\'s cloud migration initiative. Designed microservices platform serving 2M+ daily users. Managed a team of 12 engineers across Sydney and Melbourne offices.',
+              },
+              {
+                company: 'Meridian Technologies',
+                start_date: 'April 2005',
+                end_date: 'Present',
+                title: 'Director of Engineering',
+                experience_block: 'Oversees engineering department of 45 staff across three product lines. Introduced CI/CD pipelines reducing deployment time by 80%. Drove adoption of agile methodologies and cross-functional team structure.',
+              },
+            ],
+            certification: [
+              {
+                name: 'AWS Solutions Architect Professional',
+                issuer: 'Amazon Web Services',
+                date: 'March 2019',
+              },
+              {
+                name: 'Certified ScrumMaster (CSM)',
+                issuer: 'Scrum Alliance',
+                date: 'June 2012',
+              },
+            ],
+          },
+        },
+        options: {
+          documentSize: 'A4',
+          contentScale: '1',
+          orientation: 'portrait',
+          margin: '0.3',
+        },
+      }
+    },
+
     sections () {
       const partials = this.partials.map(p => ({
         label: p.meta.short || p.handle,
@@ -103,29 +192,61 @@ export default {
         })
       }
 
-      rr.push({
-        key: 'snippets.label',
-        options: [
-          {
-            label: this.$t('snippets.interpolate'),
-            copyValue: () => '{{.parameter}}',
-          },
-          {
-            label: this.$t('snippets.iterator'),
-            copyValue: () => '{{range $index, $element := .ListOfItems}}\n\n{{end}}',
-          },
-          {
-            label: this.$t('snippets.funcCall'),
-            copyValue: () => '{{funcName param1 param2 paramN}}',
-          },
-        ],
-      },
-      {
-        key: 'samples.label',
-        options: [
-          {
-            label: this.$t('samples.defaultHTML'),
-            copyValue: () => `<!DOCTYPE html>
+      if (this.isDocx) {
+        rr.push({
+          key: 'snippets.label',
+          options: [
+            {
+              label: this.$t('snippets.docxVariable'),
+              copyValue: () => '{{variableName}}',
+            },
+            {
+              label: this.$t('snippets.docxLoop'),
+              copyValue: () => '{{#each listName}}\n  {{fieldName}}\n{{/each}}',
+            },
+            {
+              label: this.$t('snippets.docxConditional'),
+              copyValue: () => '{{#if hasListName}}\n  Content here\n{{/if}}',
+            },
+            {
+              label: this.$t('snippets.docxCurrentItem'),
+              copyValue: () => '{{this}}',
+            },
+          ],
+        },
+        {
+          key: 'samples.label',
+          options: [
+            {
+              label: this.$t('samples.cvTestData'),
+              copyValue: () => JSON.stringify(this.cvSampleData, null, 2),
+            },
+          ],
+        })
+      } else {
+        rr.push({
+          key: 'snippets.label',
+          options: [
+            {
+              label: this.$t('snippets.interpolate'),
+              copyValue: () => '{{.parameter}}',
+            },
+            {
+              label: this.$t('snippets.iterator'),
+              copyValue: () => '{{range $index, $element := .ListOfItems}}\n\n{{end}}',
+            },
+            {
+              label: this.$t('snippets.funcCall'),
+              copyValue: () => '{{funcName param1 param2 paramN}}',
+            },
+          ],
+        },
+        {
+          key: 'samples.label',
+          options: [
+            {
+              label: this.$t('samples.defaultHTML'),
+              copyValue: () => `<!DOCTYPE html>
 <html>
 <head>
   <meta charset='utf-8'>
@@ -137,9 +258,10 @@ export default {
   <h1>Hello, world!</h1>
 </body>
 </html>`,
-          },
-        ],
-      })
+            },
+          ],
+        })
+      }
 
       return rr
     },

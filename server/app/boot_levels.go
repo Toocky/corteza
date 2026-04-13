@@ -389,6 +389,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	// Seed built-in templates that require the object store (available only after sysService.Initialize)
+	if err = provision.SeedDocxCVTemplate(ctx, app.Log, app.Store, sysService.DefaultObjectStore); err != nil {
+		return fmt.Errorf("could not seed docx cv template: %w", err)
+	}
+
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers
 		messagebus.Service().Init(ctx, service.DefaultQueue)

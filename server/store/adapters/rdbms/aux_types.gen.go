@@ -642,18 +642,19 @@ type (
 
 	// auxTemplate is an auxiliary structure used for transporting to/from RDBMS store
 	auxTemplate struct {
-		ID         uint64                  `db:"id"`
-		OwnerID    uint64                  `db:"owner_id"`
-		Handle     string                  `db:"handle"`
-		Language   string                  `db:"language"`
-		Type       systemType.DocumentType `db:"type"`
-		Partial    bool                    `db:"partial"`
-		Meta       systemType.TemplateMeta `db:"meta"`
-		Template   string                  `db:"template"`
-		CreatedAt  time.Time               `db:"created_at"`
-		UpdatedAt  *time.Time              `db:"updated_at"`
-		DeletedAt  *time.Time              `db:"deleted_at"`
-		LastUsedAt *time.Time              `db:"last_used_at"`
+		ID           uint64                  `db:"id"`
+		OwnerID      uint64                  `db:"owner_id"`
+		Handle       string                  `db:"handle"`
+		Language     string                  `db:"language"`
+		Type         systemType.DocumentType `db:"type"`
+		Partial      bool                    `db:"partial"`
+		Meta         systemType.TemplateMeta `db:"meta"`
+		Template     string                  `db:"template"`
+		SourceFileID uint64                  `db:"source_file_id"`
+		CreatedAt    time.Time               `db:"created_at"`
+		UpdatedAt    *time.Time              `db:"updated_at"`
+		DeletedAt    *time.Time              `db:"deleted_at"`
+		LastUsedAt   *time.Time              `db:"last_used_at"`
 	}
 
 	// auxUser is an auxiliary structure used for transporting to/from RDBMS store
@@ -3029,6 +3030,7 @@ func (aux *auxTemplate) encode(res *systemType.Template) (_ error) {
 	aux.Partial = res.Partial
 	aux.Meta = res.Meta
 	aux.Template = res.Template
+	aux.SourceFileID = res.SourceFileID
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -3049,6 +3051,7 @@ func (aux auxTemplate) decode() (res *systemType.Template, _ error) {
 	res.Partial = aux.Partial
 	res.Meta = aux.Meta
 	res.Template = aux.Template
+	res.SourceFileID = aux.SourceFileID
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -3069,6 +3072,7 @@ func (aux *auxTemplate) scan(row scanner) error {
 		&aux.Partial,
 		&aux.Meta,
 		&aux.Template,
+		&aux.SourceFileID,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

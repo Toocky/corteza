@@ -55,6 +55,7 @@ type (
 		CreateApplicationAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		CreateAuthAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		CreateAvatarInitialsAttachment(ctx context.Context, initials string, bgColor string, textColor string) (att *types.Attachment, err error)
+		CreateTemplateAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error)
 		DeleteByID(ctx context.Context, ID uint64) error
@@ -234,6 +235,39 @@ func (svc attachment) CreateAuthAttachment(ctx context.Context, name string, siz
 			OwnerID: currentUserID,
 			Name:    strings.TrimSpace(name),
 			Kind:    types.AttachmentKindAvatar,
+		}
+
+		aaProps.setAttachment(att)
+
+		if labels != nil {
+			att.Meta.Labels = labels
+		}
+
+		if err = svc.create(ctx, name, size, fh, att); err != nil {
+			return err
+		}
+
+		return err
+	}()
+
+	return att, svc.recordAction(ctx, aaProps, AttachmentActionCreate, err)
+}
+
+func (svc attachment) CreateTemplateAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (att *types.Attachment, err error) {
+	var (
+		aaProps       = &attachmentActionProps{}
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
+	)
+
+	err = func() (err error) {
+		if !svc.ac.CanManageSettings(ctx) {
+			return AttachmentErrNotAllowedToCreate()
+		}
+
+		att = &types.Attachment{
+			OwnerID: currentUserID,
+			Name:    strings.TrimSpace(name),
+			Kind:    types.AttachmentKindTemplate,
 		}
 
 		aaProps.setAttachment(att)

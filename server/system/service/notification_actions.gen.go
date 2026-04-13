@@ -55,6 +55,7 @@ var (
 // setNotification updates notificationActionProps's notification
 //
 // This function is auto-generated.
+//
 func (p *notificationActionProps) setNotification(notification *types.Notification) *notificationActionProps {
 	p.notification = notification
 	return p
@@ -63,6 +64,7 @@ func (p *notificationActionProps) setNotification(notification *types.Notificati
 // setNew updates notificationActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *notificationActionProps) setNew(new *types.Notification) *notificationActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *notificationActionProps) setNew(new *types.Notification) *notificationA
 // setUpdated updates notificationActionProps's updated
 //
 // This function is auto-generated.
+//
 func (p *notificationActionProps) setUpdated(updated *types.Notification) *notificationActionProps {
 	p.updated = updated
 	return p
@@ -79,6 +82,7 @@ func (p *notificationActionProps) setUpdated(updated *types.Notification) *notif
 // setFilter updates notificationActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *notificationActionProps) setFilter(filter *types.NotificationFilter) *notificationActionProps {
 	p.filter = filter
 	return p
@@ -87,6 +91,7 @@ func (p *notificationActionProps) setFilter(filter *types.NotificationFilter) *n
 // Serialize converts notificationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p notificationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -127,6 +132,7 @@ func (p notificationActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p notificationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -237,6 +243,7 @@ func (p notificationActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *notificationAction) String() string {
 	var props = &notificationActionProps{}
 
@@ -264,6 +271,7 @@ func (e *notificationAction) ToAction() *actionlog.Action {
 // NotificationActionSearch returns "system:notification.search" action
 //
 // This function is auto-generated.
+//
 func NotificationActionSearch(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -283,6 +291,7 @@ func NotificationActionSearch(props ...*notificationActionProps) *notificationAc
 // NotificationActionLookup returns "system:notification.lookup" action
 //
 // This function is auto-generated.
+//
 func NotificationActionLookup(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -302,6 +311,7 @@ func NotificationActionLookup(props ...*notificationActionProps) *notificationAc
 // NotificationActionCreate returns "system:notification.create" action
 //
 // This function is auto-generated.
+//
 func NotificationActionCreate(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -321,6 +331,7 @@ func NotificationActionCreate(props ...*notificationActionProps) *notificationAc
 // NotificationActionUpdate returns "system:notification.update" action
 //
 // This function is auto-generated.
+//
 func NotificationActionUpdate(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -340,6 +351,7 @@ func NotificationActionUpdate(props ...*notificationActionProps) *notificationAc
 // NotificationActionDelete returns "system:notification.delete" action
 //
 // This function is auto-generated.
+//
 func NotificationActionDelete(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -359,6 +371,7 @@ func NotificationActionDelete(props ...*notificationActionProps) *notificationAc
 // NotificationActionMarkAsRead returns "system:notification.markAsRead" action
 //
 // This function is auto-generated.
+//
 func NotificationActionMarkAsRead(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -378,6 +391,7 @@ func NotificationActionMarkAsRead(props ...*notificationActionProps) *notificati
 // NotificationActionMarkAsUnread returns "system:notification.markAsUnread" action
 //
 // This function is auto-generated.
+//
 func NotificationActionMarkAsUnread(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -397,6 +411,7 @@ func NotificationActionMarkAsUnread(props ...*notificationActionProps) *notifica
 // NotificationActionMarkAllAsRead returns "system:notification.markAllAsRead" action
 //
 // This function is auto-generated.
+//
 func NotificationActionMarkAllAsRead(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -416,6 +431,7 @@ func NotificationActionMarkAllAsRead(props ...*notificationActionProps) *notific
 // NotificationActionMarkAllAsUnread returns "system:notification.markAllAsUnread" action
 //
 // This function is auto-generated.
+//
 func NotificationActionMarkAllAsUnread(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -438,7 +454,9 @@ func NotificationActionMarkAllAsUnread(props ...*notificationActionProps) *notif
 
 // NotificationErrGeneric returns "system:notification.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrGeneric(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -472,7 +490,9 @@ func NotificationErrGeneric(mm ...*notificationActionProps) *errors.Error {
 
 // NotificationErrNotFound returns "system:notification.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrNotFound(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -504,7 +524,9 @@ func NotificationErrNotFound(mm ...*notificationActionProps) *errors.Error {
 
 // NotificationErrInvalidID returns "system:notification.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrInvalidID(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -536,7 +558,9 @@ func NotificationErrInvalidID(mm ...*notificationActionProps) *errors.Error {
 
 // NotificationErrNotAllowedToRead returns "system:notification.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrNotAllowedToRead(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -568,7 +592,9 @@ func NotificationErrNotAllowedToRead(mm ...*notificationActionProps) *errors.Err
 
 // NotificationErrNotAllowedToCreate returns "system:notification.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrNotAllowedToCreate(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -600,7 +626,9 @@ func NotificationErrNotAllowedToCreate(mm ...*notificationActionProps) *errors.E
 
 // NotificationErrNotAllowedToUpdate returns "system:notification.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrNotAllowedToUpdate(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -632,7 +660,9 @@ func NotificationErrNotAllowedToUpdate(mm ...*notificationActionProps) *errors.E
 
 // NotificationErrNotAllowedToDelete returns "system:notification.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrNotAllowedToDelete(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -664,7 +694,9 @@ func NotificationErrNotAllowedToDelete(mm ...*notificationActionProps) *errors.E
 
 // NotificationErrNotAllowedToAssign returns "system:notification.notAllowedToAssign" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NotificationErrNotAllowedToAssign(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -702,6 +734,7 @@ func NotificationErrNotAllowedToAssign(mm ...*notificationActionProps) *errors.E
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc notification) recordAction(ctx context.Context, props *notificationActionProps, actionFn func(...*notificationActionProps) *notificationAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

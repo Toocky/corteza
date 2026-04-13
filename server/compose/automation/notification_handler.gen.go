@@ -80,10 +80,9 @@ func (a notificationSendRecordArgs) GetNamespace() (bool, uint64, string) {
 // SendRecord function Send record notification
 //
 // expects implementation of sendRecord function:
-//
-//	func (h notificationHandler) sendRecord(ctx context.Context, args *notificationSendRecordArgs) (err error) {
-//	   return
-//	}
+// func (h notificationHandler) sendRecord(ctx context.Context, args *notificationSendRecordArgs) (err error) {
+//    return
+// }
 func (h notificationHandler) SendRecord() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "notificationSendRecord",

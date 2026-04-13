@@ -178,6 +178,7 @@ func (t *QueueMessage) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access QueueMessage's underlying value (*types.QueueMessage)
 // and it's fields
+//
 func (t *QueueMessage) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -367,6 +368,7 @@ func (t *Reminder) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access Reminder's underlying value (*types.Reminder)
 // and it's fields
+//
 func (t *Reminder) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -656,6 +658,7 @@ func (t *RenderedDocument) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access RenderedDocument's underlying value (*renderedDocument)
 // and it's fields
+//
 func (t *RenderedDocument) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -810,6 +813,7 @@ func (t *Role) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access Role's underlying value (*types.Role)
 // and it's fields
+//
 func (t *Role) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -1004,6 +1008,7 @@ func (t *Template) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access Template's underlying value (*types.Template)
 // and it's fields
+//
 func (t *Template) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -1262,6 +1267,7 @@ func (t *TemplateMeta) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access TemplateMeta's underlying value (types.TemplateMeta)
 // and it's fields
+//
 func (t *TemplateMeta) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -1396,6 +1402,7 @@ func (t *User) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access User's underlying value (*types.User)
 // and it's fields
+//
 func (t *User) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()

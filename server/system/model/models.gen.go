@@ -2597,6 +2597,12 @@ var Template = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "SourceFileID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "source_file_id"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,

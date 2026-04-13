@@ -61,6 +61,15 @@
           >
             {{ $t('preview.pdf') }}
           </b-btn>
+
+          <b-btn
+            v-if="canPreviewDocx"
+            data-test-id="button-preview-docx-template"
+            variant="light"
+            @click="downloadPreview('docx')"
+          >
+            {{ $t('preview.docx') }}
+          </b-btn>
         </template>
       </b-card>
     </b-col>
@@ -112,6 +121,7 @@ import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import EditorToolbox from './EditorToolbox'
 import EditorTextHtml from './EditorTextHtml'
 import EditorTextPlain from './EditorTextPlain'
+import EditorDocx from './EditorDocx'
 import EditorUnsupported from './EditorUnsupported'
 import { components } from '@cortezaproject/corteza-vue'
 
@@ -179,17 +189,28 @@ export default {
           return EditorTextHtml
         case 'text/plain':
           return EditorTextPlain
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+          return EditorDocx
         default:
           return EditorUnsupported
       }
     },
 
+    canPreviewDocx () {
+      return this.template.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
+        this.template.sourceFileID && this.template.sourceFileID !== '0'
+    },
+
+    isDocx () {
+      return this.template.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    },
+
     canPreviewHTML () {
-      return this.availableDrivers.find(({ outputTypes }) => outputTypes.includes('text/html'))
+      return !this.isDocx && this.availableDrivers.find(({ outputTypes }) => outputTypes.includes('text/html'))
     },
 
     canPreviewPDF () {
-      return this.availableDrivers.find(({ outputTypes }) => outputTypes.includes('application/pdf'))
+      return !this.isDocx && this.availableDrivers.find(({ outputTypes }) => outputTypes.includes('application/pdf'))
     },
   },
 
@@ -200,6 +221,37 @@ export default {
   },
 
   methods: {
+    downloadPreview (ext) {
+      this.incLoader()
+
+      const cfg = {
+        method: 'post',
+        responseType: 'blob',
+        url: this.$SystemAPI.templateRenderEndpoint({
+          templateID: this.template.templateID,
+          filename: 'preview',
+          ext,
+        }),
+        data: JSON.parse(this.previewData),
+      }
+
+      this.$SystemAPI.api().request(cfg)
+        .then(r => {
+          const url = window.URL.createObjectURL(r.data)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `preview.${ext}`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          window.URL.revokeObjectURL(url)
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:template.preview.error')))
+        .finally(() => {
+          this.decLoader()
+        })
+    },
+
     openPreview (ext) {
       this.incLoader()
 

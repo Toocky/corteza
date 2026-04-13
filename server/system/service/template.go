@@ -25,7 +25,8 @@ type (
 		store     store.Storer
 		ac        templateAccessController
 
-		renderer rendererService
+		renderer   rendererService
+		attachment AttachmentService
 	}
 
 	templateAccessController interface {
@@ -61,9 +62,10 @@ type (
 
 func Renderer(cfg options.TemplateOpt) *template {
 	return &template{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
+		actionlog:  DefaultActionlog,
+		store:      DefaultStore,
+		ac:         DefaultAccessControl,
+		attachment: DefaultAttachment,
 
 		renderer: renderer.Renderer(cfg),
 	}
@@ -265,6 +267,7 @@ func (svc template) Update(ctx context.Context, upd *types.Template) (tpl *types
 		tpl.Partial = upd.Partial
 		tpl.Meta = upd.Meta
 		tpl.Template = upd.Template
+		tpl.SourceFileID = upd.SourceFileID
 		tpl.OwnerID = upd.OwnerID
 		tpl.UpdatedAt = now()
 
@@ -386,9 +389,17 @@ func (svc template) Render(ctx context.Context, templateID uint64, dstType strin
 			return err
 		}
 
+		src, err := svc.getSource(ctx, tpl)
+		if err != nil {
+			return err
+		}
+		if closer, ok := src.(io.Closer); ok {
+			defer closer.Close()
+		}
+
 		// Prepare payload
 		p := &renderer.RendererPayload{
-			Template:     svc.getSource(tpl),
+			Template:     src,
 			TemplateType: tpl.Type,
 			TargetType:   types.DocumentType(dstType),
 			Variables:    variables,
@@ -410,8 +421,26 @@ func (svc template) Render(ctx context.Context, templateID uint64, dstType strin
 
 // Util things
 
-func (svc template) getSource(tpl *types.Template) io.Reader {
-	return bytes.NewBuffer([]byte(tpl.Template))
+func (svc template) getSource(ctx context.Context, tpl *types.Template) (io.Reader, error) {
+	if tpl.Type == types.DocumentTypeDocx {
+		if tpl.SourceFileID == 0 {
+			return nil, fmt.Errorf("docx template %d has no source file attached", tpl.ID)
+		}
+
+		att, err := svc.attachment.FindByID(ctx, tpl.SourceFileID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find template source file: %w", err)
+		}
+
+		f, err := svc.attachment.OpenOriginal(att)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open template source file: %w", err)
+		}
+
+		return f, nil
+	}
+
+	return bytes.NewBuffer([]byte(tpl.Template)), nil
 }
 
 func (svc template) getPartials(ctx context.Context, tpl *types.Template) ([]*renderer.TemplatePartial, error) {

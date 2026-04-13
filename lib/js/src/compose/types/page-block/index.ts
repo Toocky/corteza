@@ -18,6 +18,7 @@ export { PageBlockNavigation } from './navigation'
 export { PageBlockTab } from './tabs'
 export { PageBlockGroup } from './group'
 export { PageBlockGeometry } from './geometry'
+export { PageBlockFileUpload } from './file-upload'
 export { PageBlockCollapsibleRecord } from './collapsible-record'
 export { PageBlockCollapsibleRecordList } from './collapsible-record-list'
 

@@ -25,6 +25,7 @@ export class Template {
   }
 
   public template = ''
+  public sourceFileID = NoID
   public labels: object = {}
   public ownerID = NoID
   public createdAt?: Date = undefined
@@ -38,7 +39,7 @@ export class Template {
   }
 
   apply (r?: PartialTemplate): void {
-    Apply(this, r, CortezaID, 'templateID', 'ownerID')
+    Apply(this, r, CortezaID, 'templateID', 'ownerID', 'sourceFileID')
 
     Apply(this, r, String, 'handle', 'language', 'type', 'template')
     Apply(this, r, Boolean, 'partial', 'canDeleteTemplate')

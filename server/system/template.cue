@@ -43,6 +43,11 @@ template: {
 				goType: "string"
 				dal: {}
 			}
+			source_file_id: {
+				goType: "uint64"
+				ident: "sourceFileID"
+				dal: { type: "ID" }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

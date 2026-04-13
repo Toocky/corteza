@@ -1,9 +1,40 @@
 editor:
   content:
+    docx:
+      sourceFile: Template source file
+      fileAttached: DOCX file attached
+      downloadTemplate: Download template
+      downloadError: Failed to download template file
+      removeFile: Remove
+      uploadPlaceholder: Choose a .docx file or drop it here
+      dropPlaceholder: Drop .docx file here
+      guideTitle: DOCX Template Syntax Guide
+      guideIntro: Use the following Handlebars-style syntax in your Word document. Placeholders are automatically replaced with data when the template is rendered.
+      guideVariablesTitle: Variables
+      guideVariablesDesc: Insert a value from the data. Nested JSON paths are flattened by joining with capitals.
+      guideVariableSimple: Inserts the value of a simple variable
+      guideVariableNested: "Nested path: contact.details.name becomes contactDetailsName"
+      guideLoopsTitle: Loops
+      guideLoopsDesc: Repeat a section for each item in a list. Inside the loop, use the item's field names directly.
+      guideConditionalsTitle: Conditionals
+      guideConditionalsDesc: Show or hide a section based on a condition. Lists automatically generate a hasListName condition (true when non-empty).
+      guideCurrentItemTitle: Current Item
+      guideCurrentItemDesc: When looping over a list of simple values (strings, numbers), use {{this}} to output the current item.
+      guideDataTitle: Data Mapping Reference
+      guideDataDesc: "How your JSON data maps to template placeholders:"
+      guideTableJson: JSON Path
+      guideTablePlaceholder: Template Placeholder
+      guideTipsTitle: Tips
+      guideTip1: You can type placeholders directly in Word — the system automatically handles text that Word splits across formatting runs.
+      guideTip2: Use the Preview button to test your template with sample JSON data before using it in workflows.
+      guideTip3: "Arrays automatically create a boolean condition: contact.education[] generates hasContactEducation for use with {{#if}}."
+      uploadError: Failed to upload template file
+      removeError: Failed to remove template file
     editor:
       unsupported: Unsupported editor
     partial: Partial template
     preview:
+      docx: Download preview DOCX
       html: Preview HTML
       pdf: Preview PDF
       title: Preview output
@@ -13,14 +44,20 @@ editor:
       samples:
         defaultHTML: Default HTML
         label: Samples
+        cvTestData: CV Template Test Data
       snippets:
         funcCall: Call a function
         interpolate: Interpolate value
         iterator: Iterate over a set
         label: Snippets
+        docxVariable: Variable placeholder
+        docxLoop: Loop over a list
+        docxConditional: Conditional block
+        docxCurrentItem: Current item reference
       title: Toolbox
   info:
     contentType:
+      text_docx: DOCX (Word document)
       text_html: HTML
       text_plain: Plain text
     createdAt: Created at

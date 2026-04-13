@@ -15,8 +15,17 @@ type (
 )
 
 func Renderer(cfg options.TemplateOpt) *renderer {
-	ff := make([]driverFactory, 0, 3)
+	ff := make([]driverFactory, 0, 5)
 	ff = append(ff, newGenericText(), newGenericHTML())
+
+	// If a docxtemplater address is configured, use the sidecar for DOCX rendering.
+	// Otherwise fall back to the in-process wordZero driver.
+	if cfg.RendererDocxtemplaterAddress != "" {
+		ff = append(ff, newDocxtemplaterDocx(cfg.RendererDocxtemplaterAddress))
+	} else {
+		ff = append(ff, newWordZeroDocx())
+	}
+
 	if cfg.RendererGotenbergEnabled {
 		ff = append(ff, newGotenbergPDF(cfg.RendererGotenbergAddress))
 	}
