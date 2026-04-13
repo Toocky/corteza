@@ -29,10 +29,6 @@ github.com/PaesslerAG/jsonpath
 ## explicit
 github.com/SentimensRG/ctx
 github.com/SentimensRG/ctx/sigctx
-# github.com/ZeroHawkeye/wordZero v1.6.0
-## explicit; go 1.22
-github.com/ZeroHawkeye/wordZero/pkg/document
-github.com/ZeroHawkeye/wordZero/pkg/style
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit; go 1.13
 github.com/asaskevich/govalidator
@@ -40,8 +36,8 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/aymerick/douceur/css
 github.com/aymerick/douceur/parser
-# github.com/beevik/etree v1.3.0
-## explicit; go 1.13
+# github.com/beevik/etree v1.6.0
+## explicit; go 1.23.0
 github.com/beevik/etree
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
@@ -393,6 +389,10 @@ github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.2
 ## explicit; go 1.12
 github.com/modern-go/reflect2
+# github.com/mr-pmillz/wordZero v1.7.10
+## explicit; go 1.23.0
+github.com/mr-pmillz/wordZero/pkg/document
+github.com/mr-pmillz/wordZero/pkg/style
 # github.com/ngrok/sqlmw v0.0.0-20211220175533-9d16fdc47b31
 ## explicit; go 1.13
 github.com/ngrok/sqlmw
