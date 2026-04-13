@@ -53,10 +53,9 @@ func (a notificationSendArgs) GetRecipient() (bool, uint64, string, string) {
 // Send function Send simple notification
 //
 // expects implementation of send function:
-//
-//	func (h notificationHandler) send(ctx context.Context, args *notificationSendArgs) (err error) {
-//	   return
-//	}
+// func (h notificationHandler) send(ctx context.Context, args *notificationSendArgs) (err error) {
+//    return
+// }
 func (h notificationHandler) Send() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "notificationSend",

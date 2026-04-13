@@ -211,12 +211,12 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	}
 
+	DefaultAttachment = Attachment(DefaultObjectStore, c.Attachment, DefaultLogger)
 	DefaultRenderer = Renderer(c.Template)
 	DefaultResourceTranslation = ResourceTranslation()
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth(AuthOptions{LimitUsers: c.Limit.SystemUsers})
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service(), c.Auth)
-	DefaultAttachment = Attachment(DefaultObjectStore, c.Attachment, DefaultLogger)
 	DefaultUser = User(UserOptions{LimitUsers: c.Limit.SystemUsers})
 	DefaultCredentials = Credentials()
 	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())

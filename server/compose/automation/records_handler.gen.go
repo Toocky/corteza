@@ -82,10 +82,9 @@ func (a recordsLookupArgs) GetRecord() (bool, uint64, *types.Record) {
 // Lookup function Compose record lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h recordsHandler) lookup(ctx context.Context, args *recordsLookupArgs) (results *recordsLookupResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) lookup(ctx context.Context, args *recordsLookupArgs) (results *recordsLookupResults, err error) {
+//    return
+// }
 func (h recordsHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsLookup",
@@ -257,10 +256,9 @@ func (a recordsSearchArgs) GetModule() (bool, uint64, string, *types.Module) {
 // Search function Compose records search
 //
 // expects implementation of search function:
-//
-//	func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (results *recordsSearchResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (results *recordsSearchResults, err error) {
+//    return
+// }
 func (h recordsHandler) Search() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsSearch",
@@ -511,10 +509,9 @@ func (a recordsFirstArgs) GetModule() (bool, uint64, string, *types.Module) {
 // First function Compose record lookup (oldest)
 //
 // expects implementation of first function:
-//
-//	func (h recordsHandler) first(ctx context.Context, args *recordsFirstArgs) (results *recordsFirstResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) first(ctx context.Context, args *recordsFirstArgs) (results *recordsFirstResults, err error) {
+//    return
+// }
 func (h recordsHandler) First() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsFirst",
@@ -641,10 +638,9 @@ func (a recordsLastArgs) GetModule() (bool, uint64, string, *types.Module) {
 // Last function Compose record lookup (newest)
 //
 // expects implementation of last function:
-//
-//	func (h recordsHandler) last(ctx context.Context, args *recordsLastArgs) (results *recordsLastResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) last(ctx context.Context, args *recordsLastArgs) (results *recordsLastResults, err error) {
+//    return
+// }
 func (h recordsHandler) Last() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsLast",
@@ -797,10 +793,9 @@ func (a recordsEachArgs) GetModule() (bool, uint64, string, *types.Module) {
 // Each function Compose records
 //
 // expects implementation of each function:
-//
-//	func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (results *recordsEachResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (results *recordsEachResults, err error) {
+//    return
+// }
 func (h recordsHandler) Each() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsEach",
@@ -965,10 +960,9 @@ func (a recordsNewArgs) GetModule() (bool, uint64, string, *types.Module) {
 // New function Compose record maker
 //
 // expects implementation of new function:
-//
-//	func (h recordsHandler) new(ctx context.Context, args *recordsNewArgs) (results *recordsNewResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) new(ctx context.Context, args *recordsNewArgs) (results *recordsNewResults, err error) {
+//    return
+// }
 func (h recordsHandler) New() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsNew",
@@ -1079,10 +1073,9 @@ type (
 // Validate function Compose record validator
 //
 // expects implementation of validate function:
-//
-//	func (h recordsHandler) validate(ctx context.Context, args *recordsValidateArgs) (results *recordsValidateResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) validate(ctx context.Context, args *recordsValidateArgs) (results *recordsValidateResults, err error) {
+//    return
+// }
 func (h recordsHandler) Validate() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsValidate",
@@ -1160,10 +1153,9 @@ type (
 // Create function Compose record create
 //
 // expects implementation of create function:
-//
-//	func (h recordsHandler) create(ctx context.Context, args *recordsCreateArgs) (results *recordsCreateResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) create(ctx context.Context, args *recordsCreateArgs) (results *recordsCreateResults, err error) {
+//    return
+// }
 func (h recordsHandler) Create() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsCreate",
@@ -1238,10 +1230,9 @@ type (
 // Update function Compose record update
 //
 // expects implementation of update function:
-//
-//	func (h recordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
+//    return
+// }
 func (h recordsHandler) Update() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsUpdate",
@@ -1338,10 +1329,9 @@ func (a recordsDeleteArgs) GetRecord() (bool, uint64, *types.Record) {
 // Delete function Compose record delete
 //
 // expects implementation of delete function:
-//
-//	func (h recordsHandler) delete(ctx context.Context, args *recordsDeleteArgs) (err error) {
-//	   return
-//	}
+// func (h recordsHandler) delete(ctx context.Context, args *recordsDeleteArgs) (err error) {
+//    return
+// }
 func (h recordsHandler) Delete() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsDelete",
@@ -1465,10 +1455,9 @@ func (a recordsReportArgs) GetModule() (bool, uint64, string, *types.Module) {
 // Report function Report
 //
 // expects implementation of report function:
-//
-//	func (h recordsHandler) report(ctx context.Context, args *recordsReportArgs) (results *recordsReportResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) report(ctx context.Context, args *recordsReportArgs) (results *recordsReportResults, err error) {
+//    return
+// }
 func (h recordsHandler) Report() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsReport",
@@ -1636,10 +1625,9 @@ func (a recordsCloneArgs) GetRecord() (bool, uint64, *types.Record) {
 // Clone function Compose record cloner
 //
 // expects implementation of clone function:
-//
-//	func (h recordsHandler) clone(ctx context.Context, args *recordsCloneArgs) (results *recordsCloneResults, err error) {
-//	   return
-//	}
+// func (h recordsHandler) clone(ctx context.Context, args *recordsCloneArgs) (results *recordsCloneResults, err error) {
+//    return
+// }
 func (h recordsHandler) Clone() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeRecordsClone",

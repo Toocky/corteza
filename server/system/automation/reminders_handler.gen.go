@@ -59,10 +59,9 @@ func (a remindersLookupArgs) GetLookup() (bool, uint64, *types.Reminder) {
 // Lookup function Reminder lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h remindersHandler) lookup(ctx context.Context, args *remindersLookupArgs) (results *remindersLookupResults, err error) {
-//	   return
-//	}
+// func (h remindersHandler) lookup(ctx context.Context, args *remindersLookupArgs) (results *remindersLookupResults, err error) {
+//    return
+// }
 func (h remindersHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersLookup",
@@ -168,10 +167,9 @@ type (
 // Search function Reminders search
 //
 // expects implementation of search function:
-//
-//	func (h remindersHandler) search(ctx context.Context, args *remindersSearchArgs) (results *remindersSearchResults, err error) {
-//	   return
-//	}
+// func (h remindersHandler) search(ctx context.Context, args *remindersSearchArgs) (results *remindersSearchResults, err error) {
+//    return
+// }
 func (h remindersHandler) Search() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersSearch",
@@ -322,10 +320,9 @@ type (
 // Each function Iterate reminders
 //
 // expects implementation of each function:
-//
-//	func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (results *remindersEachResults, err error) {
-//	   return
-//	}
+// func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (results *remindersEachResults, err error) {
+//    return
+// }
 func (h remindersHandler) Each() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersEach",
@@ -427,10 +424,9 @@ type (
 // Create function Reminder create
 //
 // expects implementation of create function:
-//
-//	func (h remindersHandler) create(ctx context.Context, args *remindersCreateArgs) (results *remindersCreateResults, err error) {
-//	   return
-//	}
+// func (h remindersHandler) create(ctx context.Context, args *remindersCreateArgs) (results *remindersCreateResults, err error) {
+//    return
+// }
 func (h remindersHandler) Create() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersCreate",
@@ -546,10 +542,9 @@ func (a remindersUpdateArgs) GetLookup() (bool, uint64, *types.Reminder) {
 // Update function Reminder update
 //
 // expects implementation of update function:
-//
-//	func (h remindersHandler) update(ctx context.Context, args *remindersUpdateArgs) (results *remindersUpdateResults, err error) {
-//	   return
-//	}
+// func (h remindersHandler) update(ctx context.Context, args *remindersUpdateArgs) (results *remindersUpdateResults, err error) {
+//    return
+// }
 func (h remindersHandler) Update() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersUpdate",
@@ -662,10 +657,9 @@ func (a remindersDismissArgs) GetLookup() (bool, uint64, *types.Reminder) {
 // Dismiss function Dismiss reminder
 //
 // expects implementation of dismiss function:
-//
-//	func (h remindersHandler) dismiss(ctx context.Context, args *remindersDismissArgs) (err error) {
-//	   return
-//	}
+// func (h remindersHandler) dismiss(ctx context.Context, args *remindersDismissArgs) (err error) {
+//    return
+// }
 func (h remindersHandler) Dismiss() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersDismiss",
@@ -728,10 +722,9 @@ func (a remindersSnoozeArgs) GetLookup() (bool, uint64, *types.Reminder) {
 // Snooze function Snooze reminder
 //
 // expects implementation of snooze function:
-//
-//	func (h remindersHandler) snooze(ctx context.Context, args *remindersSnoozeArgs) (err error) {
-//	   return
-//	}
+// func (h remindersHandler) snooze(ctx context.Context, args *remindersSnoozeArgs) (err error) {
+//    return
+// }
 func (h remindersHandler) Snooze() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersSnooze",
@@ -796,10 +789,9 @@ func (a remindersDeleteArgs) GetLookup() (bool, uint64, *types.Reminder) {
 // Delete function Reminder delete
 //
 // expects implementation of delete function:
-//
-//	func (h remindersHandler) delete(ctx context.Context, args *remindersDeleteArgs) (err error) {
-//	   return
-//	}
+// func (h remindersHandler) delete(ctx context.Context, args *remindersDeleteArgs) (err error) {
+//    return
+// }
 func (h remindersHandler) Delete() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "remindersDelete",

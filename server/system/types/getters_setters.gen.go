@@ -768,6 +768,8 @@ func (r *Template) GetValue(name string, pos uint) (any, error) {
 		return r.OwnerID, nil
 	case "partial", "Partial":
 		return r.Partial, nil
+	case "sourceFileID", "SourceFileID":
+		return r.SourceFileID, nil
 	case "template", "Template":
 		return r.Template, nil
 	case "updatedAt", "UpdatedAt":
@@ -799,6 +801,8 @@ func (r *Template) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.OwnerID)
 	case "partial", "Partial":
 		return cast2.Bool(value, &r.Partial)
+	case "sourceFileID", "SourceFileID":
+		return cast2.Uint64(value, &r.SourceFileID)
 	case "template", "Template":
 		return cast2.String(value, &r.Template)
 	case "updatedAt", "UpdatedAt":

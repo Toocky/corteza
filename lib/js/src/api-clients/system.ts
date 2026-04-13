@@ -5095,6 +5095,7 @@ export default class System {
       partial,
       meta,
       template,
+      sourceFileID,
       ownerID,
       labels,
     } = (a as KV) || {}
@@ -5110,6 +5111,7 @@ export default class System {
       partial,
       meta,
       template,
+      sourceFileID,
       ownerID,
       labels,
     }
@@ -5180,6 +5182,7 @@ export default class System {
       partial,
       meta,
       template,
+      sourceFileID,
       ownerID,
       labels,
       updatedAt,
@@ -5201,6 +5204,7 @@ export default class System {
       partial,
       meta,
       template,
+      sourceFileID,
       ownerID,
       labels,
       updatedAt,

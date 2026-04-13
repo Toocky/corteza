@@ -2005,6 +2005,9 @@ endpoints:
       - name: template
         type: string
         title: Template
+      - name: sourceFileID
+        type: uint64
+        title: Attachment ID for binary template source (e.g. DOCX)
       - name: ownerID
         type: uint64
         title: OwnerID
@@ -2052,6 +2055,9 @@ endpoints:
       - name: template
         type: string
         title: Template
+      - name: sourceFileID
+        type: uint64
+        title: Attachment ID for binary template source (e.g. DOCX)
       - name: ownerID
         type: uint64
         title: OwnerID

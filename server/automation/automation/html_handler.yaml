@@ -1,0 +1,31 @@
+name: html
+
+params: &htmlParam
+  html:
+    required: true
+    meta:
+      label: HTML content
+      description: Raw HTML string to parse
+    types:
+      - { wf: String }
+
+functions:
+  toJson:
+    kind: function
+    meta:
+      short: HTML to JSON
+      description: Converts HTML rich text into a structured JSON representation with sections, headings, paragraphs and list items
+    params: *htmlParam
+    results:
+      resultJson:
+        wf: String
+
+  toMarkdown:
+    kind: function
+    meta:
+      short: HTML to Markdown
+      description: Converts HTML rich text into Markdown
+    params: *htmlParam
+    results:
+      markdown:
+        wf: String

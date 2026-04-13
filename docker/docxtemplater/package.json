@@ -1,0 +1,13 @@
+{
+  "name": "corteza-docxtemplater",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "angular-expressions": "^1.2.1",
+    "docxtemplater": "^3.50.0",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "pizzip": "^3.1.7"
+  }
+}

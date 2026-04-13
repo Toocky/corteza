@@ -57,6 +57,7 @@ var (
 // setMember updates userGroupActionProps's member
 //
 // This function is auto-generated.
+//
 func (p *userGroupActionProps) setMember(member *types.User) *userGroupActionProps {
 	p.member = member
 	return p
@@ -65,6 +66,7 @@ func (p *userGroupActionProps) setMember(member *types.User) *userGroupActionPro
 // setUserGroup updates userGroupActionProps's userGroup
 //
 // This function is auto-generated.
+//
 func (p *userGroupActionProps) setUserGroup(userGroup *types.UserGroup) *userGroupActionProps {
 	p.userGroup = userGroup
 	return p
@@ -73,6 +75,7 @@ func (p *userGroupActionProps) setUserGroup(userGroup *types.UserGroup) *userGro
 // setNew updates userGroupActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *userGroupActionProps) setNew(new *types.UserGroup) *userGroupActionProps {
 	p.new = new
 	return p
@@ -81,6 +84,7 @@ func (p *userGroupActionProps) setNew(new *types.UserGroup) *userGroupActionProp
 // setUpdate updates userGroupActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *userGroupActionProps) setUpdate(update *types.UserGroup) *userGroupActionProps {
 	p.update = update
 	return p
@@ -89,6 +93,7 @@ func (p *userGroupActionProps) setUpdate(update *types.UserGroup) *userGroupActi
 // setExisting updates userGroupActionProps's existing
 //
 // This function is auto-generated.
+//
 func (p *userGroupActionProps) setExisting(existing *types.UserGroup) *userGroupActionProps {
 	p.existing = existing
 	return p
@@ -97,6 +102,7 @@ func (p *userGroupActionProps) setExisting(existing *types.UserGroup) *userGroup
 // setFilter updates userGroupActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *userGroupActionProps) setFilter(filter *types.UserGroupFilter) *userGroupActionProps {
 	p.filter = filter
 	return p
@@ -105,6 +111,7 @@ func (p *userGroupActionProps) setFilter(filter *types.UserGroupFilter) *userGro
 // Serialize converts userGroupActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p userGroupActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -144,6 +151,7 @@ func (p userGroupActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p userGroupActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -264,6 +272,7 @@ func (p userGroupActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *userGroupAction) String() string {
 	var props = &userGroupActionProps{}
 
@@ -291,6 +300,7 @@ func (e *userGroupAction) ToAction() *actionlog.Action {
 // UserGroupActionSearch returns "system:user-group.search" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionSearch(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -310,6 +320,7 @@ func UserGroupActionSearch(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionLookup returns "system:user-group.lookup" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionLookup(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -329,6 +340,7 @@ func UserGroupActionLookup(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionCreate returns "system:user-group.create" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionCreate(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -348,6 +360,7 @@ func UserGroupActionCreate(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionUpdate returns "system:user-group.update" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionUpdate(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -367,6 +380,7 @@ func UserGroupActionUpdate(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionDelete returns "system:user-group.delete" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionDelete(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -386,6 +400,7 @@ func UserGroupActionDelete(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionUndelete returns "system:user-group.undelete" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionUndelete(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -405,6 +420,7 @@ func UserGroupActionUndelete(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionMembers returns "system:user-group.members" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionMembers(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -424,6 +440,7 @@ func UserGroupActionMembers(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionMemberAdd returns "system:user-group.memberAdd" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionMemberAdd(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -443,6 +460,7 @@ func UserGroupActionMemberAdd(props ...*userGroupActionProps) *userGroupAction {
 // UserGroupActionMemberRemove returns "system:user-group.memberRemove" action
 //
 // This function is auto-generated.
+//
 func UserGroupActionMemberRemove(props ...*userGroupActionProps) *userGroupAction {
 	a := &userGroupAction{
 		timestamp: time.Now(),
@@ -465,7 +483,9 @@ func UserGroupActionMemberRemove(props ...*userGroupActionProps) *userGroupActio
 
 // UserGroupErrGeneric returns "system:user-group.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrGeneric(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -499,7 +519,9 @@ func UserGroupErrGeneric(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotFound returns "system:user-group.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotFound(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -531,7 +553,9 @@ func UserGroupErrNotFound(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrInvalidID returns "system:user-group.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrInvalidID(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -563,7 +587,9 @@ func UserGroupErrInvalidID(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrInvalidHandle returns "system:user-group.invalidHandle" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrInvalidHandle(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -595,7 +621,9 @@ func UserGroupErrInvalidHandle(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrMissingSelfID returns "system:user-group.missingSelfID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrMissingSelfID(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -627,7 +655,9 @@ func UserGroupErrMissingSelfID(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrInvalidSelfID returns "system:user-group.invalidSelfID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrInvalidSelfID(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -659,7 +689,9 @@ func UserGroupErrInvalidSelfID(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrInvalidUpdateStructure returns "system:user-group.invalidUpdateStructure" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrInvalidUpdateStructure(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -691,7 +723,9 @@ func UserGroupErrInvalidUpdateStructure(mm ...*userGroupActionProps) *errors.Err
 
 // UserGroupErrStaleData returns "system:user-group.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrStaleData(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -723,7 +757,9 @@ func UserGroupErrStaleData(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToRead returns "system:user-group.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToRead(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -757,7 +793,9 @@ func UserGroupErrNotAllowedToRead(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToSearch returns "system:user-group.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToSearch(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -791,7 +829,9 @@ func UserGroupErrNotAllowedToSearch(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToListUserGroups returns "system:user-group.notAllowedToListUserGroups" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToListUserGroups(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -825,7 +865,9 @@ func UserGroupErrNotAllowedToListUserGroups(mm ...*userGroupActionProps) *errors
 
 // UserGroupErrNotAllowedToCreate returns "system:user-group.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToCreate(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -859,7 +901,9 @@ func UserGroupErrNotAllowedToCreate(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToUpdate returns "system:user-group.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToUpdate(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -893,7 +937,9 @@ func UserGroupErrNotAllowedToUpdate(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToDelete returns "system:user-group.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToDelete(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -927,7 +973,9 @@ func UserGroupErrNotAllowedToDelete(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToUndelete returns "system:user-group.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToUndelete(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -961,7 +1009,9 @@ func UserGroupErrNotAllowedToUndelete(mm ...*userGroupActionProps) *errors.Error
 
 // UserGroupErrHandleNotUnique returns "system:user-group.handleNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrHandleNotUnique(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -995,7 +1045,9 @@ func UserGroupErrHandleNotUnique(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNameNotUnique returns "system:user-group.nameNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNameNotUnique(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -1029,7 +1081,9 @@ func UserGroupErrNameNotUnique(mm ...*userGroupActionProps) *errors.Error {
 
 // UserGroupErrNotAllowedToManageMembers returns "system:user-group.notAllowedToManageMembers" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserGroupErrNotAllowedToManageMembers(mm ...*userGroupActionProps) *errors.Error {
 	var p = &userGroupActionProps{}
 	if len(mm) > 0 {
@@ -1069,6 +1123,7 @@ func UserGroupErrNotAllowedToManageMembers(mm ...*userGroupActionProps) *errors.
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc userGroup) recordAction(ctx context.Context, props *userGroupActionProps, actionFn func(...*userGroupActionProps) *userGroupAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

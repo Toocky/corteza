@@ -125,6 +125,11 @@ type (
 		// Template
 		Template string
 
+		// SourceFileID POST parameter
+		//
+		// Attachment ID for binary template source (e.g. DOCX)
+		SourceFileID uint64 `json:",string"`
+
 		// OwnerID POST parameter
 		//
 		// OwnerID
@@ -178,6 +183,11 @@ type (
 		//
 		// Template
 		Template string
+
+		// SourceFileID POST parameter
+		//
+		// Attachment ID for binary template source (e.g. DOCX)
+		SourceFileID uint64 `json:",string"`
 
 		// OwnerID POST parameter
 		//
@@ -408,14 +418,15 @@ func NewTemplateCreate() *TemplateCreate {
 // Auditable returns all auditable/loggable parameters
 func (r TemplateCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":   r.Handle,
-		"language": r.Language,
-		"type":     r.Type,
-		"partial":  r.Partial,
-		"meta":     r.Meta,
-		"template": r.Template,
-		"ownerID":  r.OwnerID,
-		"labels":   r.Labels,
+		"handle":       r.Handle,
+		"language":     r.Language,
+		"type":         r.Type,
+		"partial":      r.Partial,
+		"meta":         r.Meta,
+		"template":     r.Template,
+		"sourceFileID": r.SourceFileID,
+		"ownerID":      r.OwnerID,
+		"labels":       r.Labels,
 	}
 }
 
@@ -447,6 +458,11 @@ func (r TemplateCreate) GetMeta() types.TemplateMeta {
 // Auditable returns all auditable/loggable parameters
 func (r TemplateCreate) GetTemplate() string {
 	return r.Template
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TemplateCreate) GetSourceFileID() uint64 {
+	return r.SourceFileID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -527,6 +543,13 @@ func (r *TemplateCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["sourceFileID"]; ok && len(val) > 0 {
+				r.SourceFileID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["ownerID"]; ok && len(val) > 0 {
 				r.OwnerID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
@@ -602,6 +625,13 @@ func (r *TemplateCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["sourceFileID"]; ok && len(val) > 0 {
+			r.SourceFileID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["ownerID"]; ok && len(val) > 0 {
 			r.OwnerID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
@@ -668,16 +698,17 @@ func NewTemplateUpdate() *TemplateUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r TemplateUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"templateID": r.TemplateID,
-		"handle":     r.Handle,
-		"language":   r.Language,
-		"type":       r.Type,
-		"partial":    r.Partial,
-		"meta":       r.Meta,
-		"template":   r.Template,
-		"ownerID":    r.OwnerID,
-		"labels":     r.Labels,
-		"updatedAt":  r.UpdatedAt,
+		"templateID":   r.TemplateID,
+		"handle":       r.Handle,
+		"language":     r.Language,
+		"type":         r.Type,
+		"partial":      r.Partial,
+		"meta":         r.Meta,
+		"template":     r.Template,
+		"sourceFileID": r.SourceFileID,
+		"ownerID":      r.OwnerID,
+		"labels":       r.Labels,
+		"updatedAt":    r.UpdatedAt,
 	}
 }
 
@@ -714,6 +745,11 @@ func (r TemplateUpdate) GetMeta() types.TemplateMeta {
 // Auditable returns all auditable/loggable parameters
 func (r TemplateUpdate) GetTemplate() string {
 	return r.Template
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TemplateUpdate) GetSourceFileID() uint64 {
+	return r.SourceFileID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -799,6 +835,13 @@ func (r *TemplateUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["sourceFileID"]; ok && len(val) > 0 {
+				r.SourceFileID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["ownerID"]; ok && len(val) > 0 {
 				r.OwnerID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
@@ -876,6 +919,13 @@ func (r *TemplateUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["template"]; ok && len(val) > 0 {
 			r.Template, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["sourceFileID"]; ok && len(val) > 0 {
+			r.SourceFileID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

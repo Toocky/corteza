@@ -201,6 +201,11 @@ export default {
           block: new compose.PageBlockNavigation(),
           image: images.Navigation,
         },
+        {
+          label: this.$t('fileUpload.label'),
+          block: new compose.PageBlockFileUpload(),
+          image: images.File,
+        },
       ],
     }
   },

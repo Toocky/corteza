@@ -13,6 +13,8 @@ import ContentBase from './ContentBase'
 import ContentConfigurator from './ContentConfigurator'
 import FileBase from './FileBase'
 import FileConfigurator from './FileConfigurator'
+import FileUploadBase from './FileUploadBase'
+import FileUploadConfigurator from './FileUploadConfigurator'
 import GeometryBase from './GeometryBase'
 import GeometryConfigurator from './GeometryConfigurator/index'
 import IFrameBase from './IFrameBase'
@@ -54,6 +56,8 @@ const Registry = {
   ContentConfigurator,
   FileBase,
   FileConfigurator,
+  FileUploadBase,
+  FileUploadConfigurator,
   IFrameBase,
   IFrameConfigurator,
   RecordBase,

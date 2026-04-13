@@ -57,6 +57,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/minio/minio-go/v6 v6.0.57
 	github.com/modern-go/reflect2 v1.0.2
+	github.com/mr-pmillz/wordZero v1.7.10
 	github.com/ngrok/sqlmw v0.0.0-20211220175533-9d16fdc47b31
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
@@ -91,7 +92,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/beevik/etree v1.3.0 // indirect
+	github.com/beevik/etree v1.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cli/safeexec v1.0.1 // indirect
 	github.com/crewjam/httperr v0.2.0 // indirect

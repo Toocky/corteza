@@ -181,6 +181,7 @@ export default {
       contentTypes: [
         { value: 'text/html', text: this.$t('contentType.text_html') },
         { value: 'text/plain', text: this.$t('contentType.text_plain') },
+        { value: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', text: this.$t('contentType.text_docx') },
       ],
       checkboxLabel: {
         on: this.$t('general:label.general.yes'),
