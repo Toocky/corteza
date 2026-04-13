@@ -1337,6 +1337,15 @@ func fix_2024_09_10_addHashAndModuleToComposeAttachment(ctx context.Context, s *
 		return err
 	}
 
+	// If table does not exist, skip index creation — table will be created
+	// with the correct schema in the next step of the upgrade process.
+	if _, err := s.DataDefiner.TableLookup(ctx, tableName); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
 	// Create composite index on (hash, rel_module) for fast duplicate lookups.
 	// MySQL and SQL Server require an explicit existence check before CREATE INDEX.
 	driverName := s.DB.DriverName()
