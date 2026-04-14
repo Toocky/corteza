@@ -401,7 +401,7 @@ func (svc template) Render(ctx context.Context, templateID uint64, dstType strin
 		p := &renderer.RendererPayload{
 			Template:     src,
 			TemplateType: tpl.Type,
-			TargetType:   types.DocumentType(dstType),
+			TargetType:   types.NormalizeDocumentType(dstType),
 			Variables:    variables,
 			Options:      options,
 			Partials:     pp,

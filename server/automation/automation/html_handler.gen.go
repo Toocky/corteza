@@ -40,15 +40,6 @@ type (
 	htmlToJsonResults struct {
 		ResultJson string
 	}
-
-	htmlToMarkdownArgs struct {
-		hasHtml bool
-		Html    string
-	}
-
-	htmlToMarkdownResults struct {
-		Markdown string
-	}
 )
 
 // ToJson function HTML to JSON
@@ -122,13 +113,23 @@ func (h htmlHandler) ToJson() *atypes.Function {
 	}
 }
 
+type (
+	htmlToMarkdownArgs struct {
+		hasHtml bool
+		Html    string
+	}
+
+	htmlToMarkdownResults struct {
+		Markdown string
+	}
+)
+
 // ToMarkdown function HTML to Markdown
 //
 // expects implementation of toMarkdown function:
-//
-//	func (h htmlHandler) toMarkdown(ctx context.Context, args *htmlToMarkdownArgs) (results *htmlToMarkdownResults, err error) {
-//	   return
-//	}
+// func (h htmlHandler) toMarkdown(ctx context.Context, args *htmlToMarkdownArgs) (results *htmlToMarkdownResults, err error) {
+//    return
+// }
 func (h htmlHandler) ToMarkdown() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "htmlToMarkdown",
@@ -141,9 +142,8 @@ func (h htmlHandler) ToMarkdown() *atypes.Function {
 
 		Parameters: []*atypes.Param{
 			{
-				Name:     "html",
-				Types:    []string{"String"},
-				Required: true,
+				Name:  "html",
+				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
 					Label:       "HTML content",
 					Description: "Raw HTML string to parse",

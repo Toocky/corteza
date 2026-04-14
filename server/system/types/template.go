@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/sql"
@@ -79,6 +80,35 @@ const (
 	DocumentTypePDF   DocumentType = "application/pdf"
 	DocumentTypeDocx  DocumentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 )
+
+// documentTypeAliases maps human-friendly shorthand values to their canonical
+// MIME-type DocumentType. Lookups are case-insensitive.
+var documentTypeAliases = map[string]DocumentType{
+	"text":  DocumentTypePlain,
+	"plain": DocumentTypePlain,
+	"txt":   DocumentTypePlain,
+	"html":  DocumentTypeHTML,
+	"htm":   DocumentTypeHTML,
+	"pdf":   DocumentTypePDF,
+	"docx":  DocumentTypeDocx,
+	"word":  DocumentTypeDocx,
+	// Common (incorrect but intuitive) shorthand
+	"text/docx": DocumentTypeDocx,
+	"text/pdf":  DocumentTypePDF,
+}
+
+// NormalizeDocumentType accepts a canonical MIME type or a friendly alias
+// (e.g. "docx", "text/docx") and returns the canonical DocumentType.
+// Unknown values are returned unchanged so existing behaviour is preserved.
+func NormalizeDocumentType(s string) DocumentType {
+	if s == "" {
+		return DocumentType(s)
+	}
+	if v, ok := documentTypeAliases[strings.ToLower(s)]; ok {
+		return v
+	}
+	return DocumentType(s)
+}
 
 func (t *TemplateMeta) Scan(src any) error          { return sql.ParseJSON(src, t) }
 func (t TemplateMeta) Value() (driver.Value, error) { return json.Marshal(t) }

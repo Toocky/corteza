@@ -225,10 +225,8 @@ type (
 	}
 
 	TemplateOpt struct {
-		RendererGotenbergAddress     string `env:"TEMPLATE_RENDERER_GOTENBERG_ADDRESS"`
-		RendererGotenbergEnabled     bool   `env:"TEMPLATE_RENDERER_GOTENBERG_ENABLED"`
-		RendererDocxtemplaterAddress string `env:"TEMPLATE_RENDERER_DOCXTEMPLATER_ADDRESS"`
-		RendererDocxtemplaterEnabled bool   `env:"TEMPLATE_RENDERER_DOCXTEMPLATER_ENABLED"`
+		RendererGotenbergAddress string `env:"TEMPLATE_RENDERER_GOTENBERG_ADDRESS"`
+		RendererGotenbergEnabled bool   `env:"TEMPLATE_RENDERER_GOTENBERG_ENABLED"`
 	}
 
 	UpgradeOpt struct {
